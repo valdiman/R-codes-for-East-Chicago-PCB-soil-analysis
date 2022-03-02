@@ -1555,6 +1555,7 @@ s.prof[1:128, 15] <- c(0.00699336152201969,	0.00213197469418328,	0.0041152974523
 prof.f <- data.frame(cbind(t.prof, s.prof))
 t.prof.f <- t(prof.f)
 
+
 # Perform PCA all samples
 PCA <- prcomp(t.prof.f)
 
