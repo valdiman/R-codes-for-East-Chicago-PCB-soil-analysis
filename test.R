@@ -7,3 +7,8 @@
 # set working directory
 setwd(paste("/Users/andres/OneDrive - University of Iowa/work",
             "/ISRP/Project6/Soil/Data", sep = ""))
+
+# Install packages
+install.packages("readxl")
+install.packages("userfriendlyscience")
+install.packages("reshape2")
