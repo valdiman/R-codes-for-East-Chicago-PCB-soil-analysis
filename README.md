@@ -16,9 +16,7 @@ Martinez, Andres; Hua, Jason; Haque, Ezazul; Hornbuckle, Keri C.; Thorne, Peter 
 
 This README file describes both scripts statistical analysis and figures (maps and plots) use for the East Chicago Soil paper. The data can be downloaded from PANGAEA (link), using the R package pangaear (https://cran.microsoft.com/snapshot/2022-01-01/web/packages/pangaear/pangaear.pdf).
 
---------
-SOFTWARE INSTALLATION
---------
+#SOFTWARE INSTALLATION
 
 This section of the ReadMe file provides short instructions on how to download and install "R Studio".  "R Studio" is an open source (no product license required) integrated development environment (IDE) for "R" and completely free to use.  To install "R Studio" follow the instructions below:
 
