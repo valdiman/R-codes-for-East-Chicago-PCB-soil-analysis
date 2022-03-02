@@ -1195,3 +1195,5 @@ s.teq.sum <- rowSums(s.teq.1)
 fittPCB.teq <- lm(s.teq.sum ~ rowSums(s.1))
 summary(fittPCB.teq)
 
+
+
