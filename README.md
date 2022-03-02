@@ -4,6 +4,8 @@
 
 This README file was generated on March 02 2022 by Andres Martinez (ORCID: 0000-0002-0572-1494)
 
+This README file describes both scripts statistical analysis and figures (maps and plots) use for the East Chicago Soil paper. The data can be downloaded from PANGAEA (link), using the R package pangaear (https://cran.microsoft.com/snapshot/2022-01-01/web/packages/pangaear/pangaear.pdf).
+
 This work was supported by the National Institutes of Environmental Health Sciences (NIEHS) grant #P42ES013661, the University of Iowa’s Environmental Health Sciences Research Center, Grant NIH P30ES005605 and Columbia University’s Superfund Research Program Grant NIH P42ES010349.  The funding sponsor did not have any role in study design; in collection, analysis, and/or interpretation of data; in creation of the dataset; and/or in the decision to submit this data for publication or deposit it in a repository.
 
 # Citations
@@ -15,8 +17,6 @@ Martinez, Andres; Hua, Jason; Haque, Ezazul; Hornbuckle, Keri C.; Thorne, Peter 
 Publication citation:
 
 Martinez, Andres; Hua, Jason; Haque, Ezazul; Hornbuckle, Keri C.; Thorne, Peter S. (2022): Occurrence and spatial distribution of individual polychlorinated biphenyl congeners in residential soils from East Chicago, southwest Lake Michigan.
-
-This README file describes both scripts statistical analysis and figures (maps and plots) use for the East Chicago Soil paper. The data can be downloaded from PANGAEA (link), using the R package pangaear (https://cran.microsoft.com/snapshot/2022-01-01/web/packages/pangaear/pangaear.pdf).
 
 # Software installation
 
