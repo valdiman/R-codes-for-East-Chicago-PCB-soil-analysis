@@ -7,17 +7,8 @@
 setwd(paste("/Users/andres/OneDrive - University of Iowa/work",
             "/ISRP/Project6/Soil/Data", sep = ""))
 
-# Install package
-install.packages("readxl")
-# Library
-library(readxl)
-
-# Read data.xlsx
-# Data in ng/g
-s <- read_excel("DataSoilV02.xlsx", sheet = "tConcentrationV05",
-                col_names = TRUE, col_types = NULL)
-
 # Install packages
+install.packages("readxl")
 install.packages("ggplot2")
 install.packages("ggmap")
 install.packages("ggrepel")
@@ -25,11 +16,17 @@ install.packages("scales")
 install.packages("ggpubr")
 
 # Libraries
+library(readxl)
 library(ggmap) # make_bbox
 library(ggplot2) # make_bbox
 library(ggrepel) #geom_label_repel
 library(scales) # comma_format
 library(ggpubr) # ggarrange
+
+# Read data.xlsx
+# Data in ng/g
+s <- read_excel("DataSoilV02.xlsx", sheet = "tConcentrationV05",
+                col_names = TRUE, col_types = NULL)
 
 # Map with ggmap
 # Create a square map around samples
@@ -69,7 +66,7 @@ colnames(tPCB) <- c("tPCB", "long", "lat")
 # Map tPCB (Figure 1). Includes: The Fork, Lake Michigan and IHSC.
 ggmap(in.map) +
   geom_point(data = tPCB, aes(x = long, y = lat,
-                              size = tPCB), alpha = 0.5) +
+                              size = tPCB)) +
   geom_label_repel(aes(x = long, y = lat,
                        label = formatC(signif(tPCB, digits = 2))),
                    data = tPCB, size = 3, color = "red",
