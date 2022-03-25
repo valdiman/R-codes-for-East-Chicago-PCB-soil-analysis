@@ -14,6 +14,8 @@ install.packages("ggmap")
 install.packages("ggrepel")
 install.packages("scales")
 install.packages("ggpubr")
+install.packages("reshape2")
+install.packages("userfriendlyscience")
 
 # Libraries
 library(readxl)
@@ -22,6 +24,8 @@ library(ggplot2) # make_bbox
 library(ggrepel) #geom_label_repel
 library(scales) # comma_format
 library(ggpubr) # ggarrange
+library(reshape2) # melt
+library(userfriendlyscience)
 
 # Read data.xlsx
 # Data in ng/g
@@ -97,7 +101,7 @@ ggmap(in.map) +
 # Map individual congeners. E.g., PCB 8 (Figure S2).
 ggmap(in.map) +
   geom_point(data = s, aes(x = long, y = lat,
-                           size = PCB8), alpha = 0.5) +
+                           size = PCB8)) +
   geom_label_repel(aes(x = long, y = lat,
                        label = formatC(signif(PCB8, digits = 2))),
                    data = s, size = 3, color = "red",
@@ -125,8 +129,7 @@ ggmap(in.map) +
 # Map TOC (Figure S3)
 ggmap(in.map) +
   geom_point(data = s, aes(x = long, y = lat,
-                           size = TOC*100), alpha = 0.5,
-             color="black") +
+                           size = TOC*100), color = "black") +
   geom_label_repel(aes(x = long, y = lat,
                        label = formatC(signif(TOC*100, digits = 2))),
                    data = s, size = 3, color = "red",
@@ -304,14 +307,6 @@ ptPCB <- ggplot(s, aes(y = rowSums(s.1), x = factor(location,
 ggarrange(p8, p11, p52, p136, p206, p209, ptPCB, ncol=1)
 
 # Total PCB concentration comparison plot (Figure 3) ----------------------
-
-# Install packages
-install.packages("reshape2")
-install.packages("userfriendlyscience")
-
-# Libraries
-library(reshape2) # melt
-library(userfriendlyscience)
 
 # Create matrix to storage external data
 s.2 <- matrix(NA, nrow = 10, ncol = 73)
@@ -498,7 +493,13 @@ ggplot(s.2, aes(x = location, y = value)) +
                       short = unit(0.5, "mm"),
                       mid = unit(1.5, "mm"),
                       long = unit(2, "mm")) +
-  annotate("text", x = 10, y = 3000, label = "*", size  = 6)
+  geom_bracket(xmin = 1, xmax = 5, y.position = 3.7,
+               label = " ", size = 0.8, color = "blue") +
+  geom_bracket(xmin = 9.5, xmax = 10.5, y.position = 3.7,
+               label = " ", size = 0.8, color = "blue") +
+  geom_bracket(xmin = 3, xmax = 10, y.position = 4,
+               label = " * Tukey test, p < 0.05", label.size = 3.5,
+               size = 0.8, color = "blue")
 
 # Individual PCB boxplot (Figure 4) ---------------------------------------
 
