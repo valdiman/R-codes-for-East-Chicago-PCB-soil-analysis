@@ -16,6 +16,7 @@ install.packages("scales")
 install.packages("ggpubr")
 install.packages("reshape2")
 install.packages("userfriendlyscience")
+install.packages("egg")
 
 # Libraries
 library(readxl)
@@ -26,6 +27,7 @@ library(scales) # comma_format
 library(ggpubr) # ggarrange
 library(reshape2) # melt
 library(userfriendlyscience)
+library(egg)
 
 # Read data.xlsx
 # Data in ng/g
@@ -529,30 +531,29 @@ ggplot(stack(s.1), aes(x = ind, y = values)) +
                       long = unit(2, "mm"))
 
 # TOC vs. PCB concentrations plots (Figure 5) -----------------------
-# Install package
-install.packages("egg")
-
-# Library
-library(egg)
 
 # Remove samples with no TOC measurements
 s.toc <- data.frame(s[!s$TOC== 0,])
 # Retrieve just TOC data
 toc <- s.toc$TOC*100
 
+#cor(x, y, method = "pearson")
+
 # Perform linear regressions, individual PCB congeners and tPCB vs. TOC
 # PCB 8 vs. TOC
 a.pcb8 <- log10(s.toc$PCB8)
 fit1 <- lm(a.pcb8 ~ toc)
+pc <- cor(a.pcb8, toc, method = "pearson")
 # Plot PCB 8 vs. TOC linear regression
-p8.toc <- ggplot(s.toc, aes(y = log10(PCB8), x = toc)) +
+p8.toc <- ggplot(s.toc, aes(y = PCB8, x = toc)) +
   geom_point(shape = 21, colour = "black", fill = "white",
              size = 1.7, stroke = 0.8) +
   stat_smooth(method = "lm", col = "black", se = FALSE) +
+  scale_y_log10() +
   theme_bw() +
   theme(aspect.ratio = 4/6) +
   xlab(expression(bold("TOC %"))) + 
-  ylab(expression(bold("log10 PCB 8 (ng/g DW)"))) +
+  ylab(expression(bold("PCB 8 (ng/g DW)"))) +
   theme(axis.text.y = element_text(face = "bold", size = 7),
         axis.title.y = element_text(face = "bold", size = 7)) +
   theme(axis.text.x = element_text(face = "bold", size = 7),
@@ -564,16 +565,21 @@ p8.toc <- ggplot(s.toc, aes(y = log10(PCB8), x = toc)) +
                          " m =", signif(fit1$coef[[2]], 2),
                          " p =", signif(summary(fit1)$coef[2,4],
                                         2)),
-           size = 2, fontface = 2)
+           size = 2, fontface = 2) +
+  annotation_logticks(sides = "l",
+                      short = unit(0.5, "mm"),
+                      mid = unit(1.5, "mm"),
+                      long = unit(2, "mm"))
 
 # PCB 11 vs. TOC
 a.pcb11 <- log10(s.toc$PCB11)
 fit11 <- lm(a.pcb11 ~ toc)
 # Plot PCB 11 vs. TOC linear regression
-p11.toc <- ggplot(s.toc, aes(y = log10(PCB11), x = toc)) +
+p11.toc <- ggplot(s.toc, aes(y = PCB11, x = toc)) +
   geom_point(shape = 21, colour = "black", fill = "white",
              size = 1.7, stroke = 0.8) +
   stat_smooth(method = "lm", col = "black", se = FALSE) +
+  scale_y_log10() +
   theme_bw() +
   theme(aspect.ratio = 4/6) +
   xlab(expression(bold("TOC %"))) + 
@@ -589,7 +595,11 @@ p11.toc <- ggplot(s.toc, aes(y = log10(PCB11), x = toc)) +
                          " m =", signif(fit11$coef[[2]], 2),
                          " p =", signif(summary(fit11)$coef[2,4],
                                         2)),
-           size = 2, fontface = 2)
+           size = 2, fontface = 2) +
+  annotation_logticks(sides = "l",
+                      short = unit(0.5, "mm"),
+                      mid = unit(1.5, "mm"),
+                      long = unit(2, "mm"))
 
 # PCB 52 vs. TOC
 a.pcb52 <- log10(s.toc$PCB52)
