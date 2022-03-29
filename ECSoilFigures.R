@@ -731,170 +731,205 @@ d <- s$distance
 # PCB 56 vs distance to IHSC (The Fork)
 a.pcb56 <- log10(s$PCB56)
 fit56 <- lm(a.pcb56 ~ d)
-p56.dis <- ggplot(s, aes(y = a.pcb56, x = d)) +
+p56.dis <- ggplot(s, aes(x = d, y = PCB56)) +
   geom_point(shape = 21, colour = "black", fill = "white",
              size = 1.7, stroke = 0.8) +
   stat_smooth(method = "lm", col = "black", se = FALSE) +
+  scale_y_log10() +
   theme_bw() +
   theme(aspect.ratio = 4/6) +
   xlab(expression(bold("distance (m)"))) + 
-  ylab(expression(bold("log10 PCB 56 (ng/g DW)"))) +
+  ylab(expression(bold("PCB 56 (ng/g DW)"))) +
   theme(axis.text.y = element_text(face = "bold", size = 7),
         axis.title.y = element_text(face = "bold", size = 7)) +
   theme(axis.text.x = element_text(face = "bold", size = 7),
         axis.title.x = element_text(face = "bold", size = 7)) +
   theme(plot.title = element_text(size = 7, face = "bold")) +
-  annotate("text", x = 2300, y = 3,
+  annotate("text", x = 2500, y = 140,
            label = paste("R2 = ", signif(summary(fit56)$adj.r.squared,
                                          2),
                          " m =", signif(fit56$coef[[2]], 2),
                          " p =", signif(summary(fit56)$coef[2,4],
                                         2)),
-           size = 2, fontface = 2)
-
+           size = 2, fontface = 2) +
+  annotation_logticks(sides = "l",
+                      short = unit(0.5, "mm"),
+                      mid = unit(1.5, "mm"),
+                      long = unit(2, "mm"))
+  
 # PCB 66 vs distance to IHSC (The Fork)
 a.pcb66 <- log10(s$PCB66)
 fit66 <- lm(a.pcb66 ~ d)
-p66.dis <- ggplot(s, aes(y = a.pcb66, x = d)) +
+p66.dis <- ggplot(s, aes(y = PCB66, x = d)) +
   geom_point(shape = 21, colour = "black", fill = "white",
              size = 1.7, stroke = 0.8) +
   stat_smooth(method = "lm", col = "black", se = FALSE) +
+  scale_y_log10() +
   theme_bw() +
   theme(aspect.ratio = 4/6) +
   xlab(expression(bold("distance (m)"))) + 
-  ylab(expression(bold("log10 PCB 66 (ng/g DW)"))) +
+  ylab(expression(bold("PCB 66 (ng/g DW)"))) +
   theme(axis.text.y = element_text(face = "bold", size = 7),
         axis.title.y = element_text(face = "bold", size = 7)) +
   theme(axis.text.x = element_text(face = "bold", size = 7),
         axis.title.x = element_text(face = "bold", size = 7)) +
   theme(plot.title = element_text(size = 7, face = "bold")) +
-  annotate("text", x = 10, y = 0.5,
+  annotate("text", x = 2500, y = 140,
            label = paste("R2 = ", signif(summary(fit66)$adj.r.squared,
                                          2),
                          " m =", signif(fit66$coef[[2]], 2),
                          " p =", signif(summary(fit66)$coef[2,4],
                                         2)),
-           size = 2, fontface = 2)
-
+           size = 2, fontface = 2) +
+  annotation_logticks(sides = "l",
+                      short = unit(0.5, "mm"),
+                      mid = unit(1.5, "mm"),
+                      long = unit(2, "mm"))
+  
 # PCB 110 vs distance to IHSC (The Fork)
 a.pcb110 <- log10(s$PCB110)
 fit110 <- lm(a.pcb110 ~ d)
-p110.dis <- ggplot(s, aes(y = a.pcb110, x = d)) +
+p110.dis <- ggplot(s, aes(y = PCB110, x = d)) +
   geom_point(shape = 21, colour = "black", fill = "white",
              size = 1.7, stroke = 0.8) +
   stat_smooth(method = "lm", col = "black", se = FALSE) +
+  scale_y_log10() +
   theme_bw() +
   theme(aspect.ratio = 4/6) +
   xlab(expression(bold("distance (m)"))) + 
-  ylab(expression(bold("log10 PCB 110 (ng/g DW)"))) +
+  ylab(expression(bold("PCB 110 (ng/g DW)"))) +
   theme(axis.text.y = element_text(face = "bold", size = 7),
         axis.title.y = element_text(face = "bold", size = 7)) +
   theme(axis.text.x = element_text(face = "bold", size = 7),
         axis.title.x = element_text(face = "bold", size = 7)) +
   theme(plot.title = element_text(size = 7, face = "bold")) +
-  annotate("text", x = 2300, y = 2.5,
+  annotate("text", x = 2500, y = 80,
            label = paste("R2 = ", signif(summary(fit110)$adj.r.squared,
                                          2),
                          " m =", signif(fit110$coef[[2]], 2),
                          " p =", signif(summary(fit110)$coef[2,4],
                                         2)),
-           size = 2, fontface = 2)
+           size = 2, fontface = 2) +
+  annotation_logticks(sides = "l",
+                      short = unit(0.5, "mm"),
+                      mid = unit(1.5, "mm"),
+                      long = unit(2, "mm"))
 
 # PCB 187 vs distance to IHSC (The Fork)
 a.pcb187 <- log10(s$PCB187)
 fit187 <- lm(a.pcb187 ~ d)
-p187.dis <- ggplot(s, aes(y = a.pcb187, x = d)) +
+p187.dis <- ggplot(s, aes(y = PCB187, x = d)) +
   geom_point(shape = 21, colour = "black", fill = "white",
              size = 1.7, stroke = 0.8) +
   stat_smooth(method = "lm", col = "black", se = FALSE) +
+  scale_y_log10() +
   theme_bw() +
   theme(aspect.ratio = 4/6) +
   xlab(expression(bold("distance (m)"))) + 
-  ylab(expression(bold("log10 PCB 187 (ng/g DW)"))) +
+  ylab(expression(bold("PCB 187 (ng/g DW)"))) +
   theme(axis.text.y = element_text(face = "bold", size = 7),
         axis.title.y = element_text(face = "bold", size = 7)) +
   theme(axis.text.x = element_text(face = "bold", size = 7),
         axis.title.x = element_text(face = "bold", size = 7)) +
   theme(plot.title = element_text(size = 7, face = "bold")) +
-  annotate("text", x = 2300, y = 2,
+  annotate("text", x = 2500, y = 18,
            label = paste("R2 = ", signif(summary(fit187)$adj.r.squared,
                                          2),
                          " m =", signif(fit187$coef[[2]], 2),
                          " p =", signif(summary(fit187)$coef[2,4],
                                         2)),
-           size = 2, fontface = 2)
+           size = 2, fontface = 2) +
+  annotation_logticks(sides = "l",
+                      short = unit(0.5, "mm"),
+                      mid = unit(1.5, "mm"),
+                      long = unit(2, "mm"))
 
 # PCB 206 vs distance to IHSC (The Fork)
 a.pcb206 <- log10(s$PCB206)
 fit206 <- lm(a.pcb206 ~ d)
-p206.dis <- ggplot(s, aes(y = a.pcb206, x = d)) +
+p206.dis <- ggplot(s, aes(y = PCB206, x = d)) +
   geom_point(shape = 21, colour = "black", fill = "white",
              size = 1.7, stroke = 0.8) +
   stat_smooth(method = "lm", col = "black", se = FALSE) +
+  scale_y_log10() +
   theme_bw() +
   theme(aspect.ratio = 4/6) +
   xlab(expression(bold("distance (m)"))) + 
-  ylab(expression(bold("log10 PCB 206 (ng/g DW)"))) +
+  ylab(expression(bold("PCB 206 (ng/g DW)"))) +
   theme(axis.text.y = element_text(face = "bold", size = 7),
         axis.title.y = element_text(face = "bold", size = 7)) +
   theme(axis.text.x = element_text(face = "bold", size = 7),
         axis.title.x = element_text(face = "bold", size = 7)) +
   theme(plot.title = element_text(size = 7, face = "bold")) +
-  annotate("text", x = 2300, y = 2,
+  annotate("text", x = 2500, y = 14,
            label = paste("R2 = ", signif(summary(fit206)$adj.r.squared,
                                          2),
                          " m =", signif(fit206$coef[[2]], 2),
                          " p =", signif(summary(fit206)$coef[2,4],
                                         2)),
-           size = 2, fontface = 2)
+           size = 2, fontface = 2) +
+  annotation_logticks(sides = "l",
+                      short = unit(0.5, "mm"),
+                      mid = unit(1.5, "mm"),
+                      long = unit(2, "mm"))
 
 # PCB 209 vs distance to IHSC (The Fork)
-a.pcb209 <- log10(s.1$PCB209)
+a.pcb209 <- log10(s$PCB209)
 fit209 <- lm(a.pcb209 ~ d)
-p209.dis <- ggplot(s.1, aes(y = a.pcb209, x = d)) +
+p209.dis <- ggplot(s, aes(y = PCB209, x = d)) +
   geom_point(shape = 21, colour = "black", fill = "white",
              size = 1.7, stroke = 0.8) +
   stat_smooth(method = "lm", col = "black", se = FALSE) +
+  scale_y_log10() +
   theme_bw() +
   theme(aspect.ratio = 4/6) +
   xlab(expression(bold("distance (m)"))) + 
-  ylab(expression(bold("log10 PCB 209 (ng/g DW)"))) +
+  ylab(expression(bold("PCB 209 (ng/g DW)"))) +
   theme(axis.text.y = element_text(face = "bold", size = 7),
         axis.title.y = element_text(face = "bold", size = 7)) +
   theme(axis.text.x = element_text(face = "bold", size = 7),
         axis.title.x = element_text(face = "bold", size = 7)) +
   theme(plot.title = element_text(size = 7, face = "bold")) +
-  annotate("text", x = 2300, y = 3,
+  annotate("text", x = 2500, y = 100,
            label = paste("R2 = ", signif(summary(fit209)$adj.r.squared,
                                          2),
                          " m =", signif(fit209$coef[[2]], 2),
                          " p =", signif(summary(fit209)$coef[2,4],
                                         2)),
-           size = 2, fontface = 2)
+           size = 2, fontface = 2) +
+  annotation_logticks(sides = "l",
+                      short = unit(0.5, "mm"),
+                      mid = unit(1.5, "mm"),
+                      long = unit(2, "mm"))
 
 # Total PCB vs distance to IHSC (The Fork)
 a <- log10(rowSums(s.1))
 fittPCB <- lm(a ~ d)
-ptPCB.dis <- ggplot(s.1, aes(x = d, y = a)) +
+ptPCB.dis <- ggplot(s.1, aes(x = d, y = rowSums(s.1))) +
   geom_point(shape = 21, colour = "black", fill = "white",
              size = 1.7, stroke = 0.8) +
   stat_smooth(method = "lm", col = "black", se = FALSE) +
+  scale_y_log10() +
   theme_bw() +
   theme(aspect.ratio = 4/6) +
   xlab(expression(bold("distance (m)"))) + 
-  ylab(expression(bold("log10 "*Sigma*"PCB (ng/g DW)"))) +
+  ylab(expression(bold(Sigma*"PCB (ng/g DW)"))) +
   theme(axis.text.y = element_text(face = "bold", size = 7),
         axis.title.y = element_text(face = "bold", size = 7)) +
   theme(axis.text.x = element_text(face = "bold", size = 7),
         axis.title.x = element_text(face = "bold", size = 7)) +
   theme(plot.title = element_text(size = 7, face = "bold")) +
-  annotate("text", x = 2300, y = 4,
+  annotate("text", x = 2300, y = 2600,
            label = paste("R2 = ", signif(summary(fittPCB)$adj.r.squared,
                                          2),
                          " m =", signif(fittPCB$coef[[2]], 2),
                          " p =", signif(summary(fittPCB)$coef[2,4],
                                         2)),
-           size = 2, fontface = 2)
+           size = 2, fontface = 2) +
+  annotation_logticks(sides = "l",
+                      short = unit(0.5, "mm"),
+                      mid = unit(1.5, "mm"),
+                      long = unit(2, "mm"))
 
 # Plot all plots in one panel (Figure 6)
 ggarrange(p56.dis, p110.dis, p187.dis, p206.dis, p209.dis,
