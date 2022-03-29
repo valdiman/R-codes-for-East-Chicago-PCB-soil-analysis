@@ -543,7 +543,6 @@ toc <- s.toc$TOC*100
 # PCB 8 vs. TOC
 a.pcb8 <- log10(s.toc$PCB8)
 fit1 <- lm(a.pcb8 ~ toc)
-pc <- cor(a.pcb8, toc, method = "pearson")
 # Plot PCB 8 vs. TOC linear regression
 p8.toc <- ggplot(s.toc, aes(y = PCB8, x = toc)) +
   geom_point(shape = 21, colour = "black", fill = "white",
@@ -559,7 +558,7 @@ p8.toc <- ggplot(s.toc, aes(y = PCB8, x = toc)) +
   theme(axis.text.x = element_text(face = "bold", size = 7),
         axis.title.x = element_text(face = "bold", size = 7)) +
   theme(plot.title = element_text(size = 7, face = "bold")) +
-  annotate("text", x = 10, y = 1,
+  annotate("text", x = 18, y = 0.15,
            label = paste("R2 = ", signif(summary(fit1)$adj.r.squared,
                                          2),
                          " m =", signif(fit1$coef[[2]], 2),
@@ -583,13 +582,13 @@ p11.toc <- ggplot(s.toc, aes(y = PCB11, x = toc)) +
   theme_bw() +
   theme(aspect.ratio = 4/6) +
   xlab(expression(bold("TOC %"))) + 
-  ylab(expression(bold("log10 PCB 11 (ng/g DW)"))) +
+  ylab(expression(bold("PCB 11 (ng/g DW)"))) +
   theme(axis.text.y = element_text(face = "bold", size = 7),
         axis.title.y = element_text(face = "bold", size = 7)) +
   theme(axis.text.x = element_text(face = "bold", size = 7),
         axis.title.x = element_text(face = "bold", size = 7)) +
   theme(plot.title = element_text(size = 7, face = "bold")) +
-  annotate("text", x = 10, y = 0.5,
+  annotate("text", x = 18, y = 0.1,
            label = paste("R2 = ", signif(summary(fit11)$adj.r.squared,
                                          2),
                          " m =", signif(fit11$coef[[2]], 2),
@@ -605,76 +604,91 @@ p11.toc <- ggplot(s.toc, aes(y = PCB11, x = toc)) +
 a.pcb52 <- log10(s.toc$PCB52)
 fit52 <- lm(a.pcb52 ~ toc)
 # Plot PCB 52 vs. TOC linear regression
-p52.toc <- ggplot(s.toc, aes(y = log10(PCB52), x = toc)) +
+p52.toc <- ggplot(s.toc, aes(y = PCB52, x = toc)) +
   geom_point(shape = 21, colour = "black", fill = "white",
              size = 1.7, stroke = 0.8) +
   stat_smooth(method = "lm", col = "black", se = FALSE) +
+  scale_y_log10() +
   theme_bw() +
   theme(aspect.ratio = 4/6) +
   xlab(expression(bold("TOC %"))) + 
-  ylab(expression(bold("log10 PCB 52 (ng/g DW)"))) +
+  ylab(expression(bold("PCB 52 (ng/g DW)"))) +
   theme(axis.text.y = element_text(face = "bold", size = 7),
         axis.title.y = element_text(face = "bold", size = 7)) +
   theme(axis.text.x = element_text(face = "bold", size = 7),
         axis.title.x = element_text(face = "bold", size = 7)) +
   theme(plot.title = element_text(size = 7, face = "bold")) +
-  annotate("text", x = 10, y = 2.5,
+  annotate("text", x = 18, y = 1.7,
            label = paste("R2 = ", signif(summary(fit52)$adj.r.squared,
                                          2),
                          " m =", signif(fit52$coef[[2]], 2),
                          " p =", signif(summary(fit52)$coef[2,4],
                                         2)),
-           size = 2, fontface = 2)
+           size = 2, fontface = 2) +
+  annotation_logticks(sides = "l",
+                      short = unit(0.5, "mm"),
+                      mid = unit(1.5, "mm"),
+                      long = unit(2, "mm"))
 
 # PCB 136 vs. TOC
 a.pcb136 <- log10(s.toc$PCB136)
 fit136 <- lm(a.pcb136 ~ toc)
 # Plot PCB 136 vs. TOC linear regression
-p136.toc <- ggplot(s.toc, aes(y = log10(PCB136), x = toc)) +
+p136.toc <- ggplot(s.toc, aes(y = PCB136, x = toc)) +
   geom_point(shape = 21, colour = "black", fill = "white",
              size = 1.7, stroke = 0.8) +
   stat_smooth(method = "lm", col = "black", se = FALSE) +
+  scale_y_log10() +
   theme_bw() +
   theme(aspect.ratio = 4/6) +
   xlab(expression(bold("TOC %"))) + 
-  ylab(expression(bold("log10 PCB 136 (ng/g DW)"))) +
+  ylab(expression(bold("PCB 136 (ng/g DW)"))) +
   theme(axis.text.y = element_text(face = "bold", size = 7),
         axis.title.y = element_text(face = "bold", size = 7)) +
   theme(axis.text.x = element_text(face = "bold", size = 7),
         axis.title.x = element_text(face = "bold", size = 7)) +
   theme(plot.title = element_text(size = 7, face = "bold")) +
-  annotate("text", x = 10, y = 1,
+  annotate("text", x = 18, y = 0.09,
            label = paste("R2 = ", signif(summary(fit136)$adj.r.squared,
                                          2),
                          " m =", signif(fit136$coef[[2]], 2),
                          " p =", signif(summary(fit136)$coef[2,4],
                                         2)),
-           size = 2, fontface = 2)
+           size = 2, fontface = 2) +
+  annotation_logticks(sides = "l",
+                      short = unit(0.5, "mm"),
+                      mid = unit(1.5, "mm"),
+                      long = unit(2, "mm"))
 
 # PCB 209 vs. TOC
 a.pcb209 <- log10(s.toc$PCB209)
 fit209 <- lm(a.pcb209 ~ toc)
 # Plot PCB 209 vs. TOC linear regression
-p209.toc <- ggplot(s.toc, aes(y = log10(PCB209), x = toc)) +
+p209.toc <- ggplot(s.toc, aes(y = PCB209, x = toc)) +
   geom_point(shape = 21, colour = "black", fill = "white",
              size = 1.7, stroke = 0.8) +
   stat_smooth(method = "lm", col = "black", se = FALSE) +
+  scale_y_log10() +
   theme_bw() +
   theme(aspect.ratio = 4/6) +
   xlab(expression(bold("TOC %"))) + 
-  ylab(expression(bold("log10 PCB 209 (ng/g DW)"))) +
+  ylab(expression(bold("PCB 209 (ng/g DW)"))) +
   theme(axis.text.y = element_text(face = "bold", size = 7),
         axis.title.y = element_text(face = "bold", size = 7)) +
   theme(axis.text.x = element_text(face = "bold", size = 7),
         axis.title.x = element_text(face = "bold", size = 7)) +
   theme(plot.title = element_text(size = 7, face = "bold")) +
-  annotate("text", x = 10, y = 2,
+  annotate("text", x = 18, y = 0.08,
            label = paste("R2 = ", signif(summary(fit209)$adj.r.squared,
                                          2),
                          " m =", signif(fit209$coef[[2]], 2),
                          " p =", signif(summary(fit209)$coef[2,4],
                                         2)),
-           size = 2, fontface = 2)
+           size = 2, fontface = 2) +
+  annotation_logticks(sides = "l",
+                      short = unit(0.5, "mm"),
+                      mid = unit(1.5, "mm"),
+                      long = unit(2, "mm"))
 
 # remove metadata
 s.toc.2 <- subset(s.toc, select = -c(sample.code:lat))
@@ -682,26 +696,31 @@ s.toc.2 <- subset(s.toc, select = -c(sample.code:lat))
 a <- log10(rowSums(s.toc.2))
 fittPCB <- lm(a ~ toc)
 # Plot tPCB vs. TOC
-ptPCB.toc <- ggplot(s.toc, aes(x = toc, y = log10(rowSums(s.toc.2)))) +
+ptPCB.toc <- ggplot(s.toc, aes(x = toc, y = rowSums(s.toc.2))) +
   geom_point(shape = 21, colour = "black", fill = "white",
              size = 1.7, stroke = 0.8) +
   stat_smooth(method = "lm", col = "black", se = FALSE) +
+  scale_y_log10() +
   theme_bw() +
   theme(aspect.ratio = 4/6) +
   xlab(expression(bold("TOC %"))) + 
-  ylab(expression(bold("log10 "*Sigma*"PCB (ng/g DW)"))) +
+  ylab(expression(bold(Sigma*"PCB (ng/g DW)"))) +
   theme(axis.text.y = element_text(face = "bold", size = 7),
         axis.title.y = element_text(face = "bold", size = 7)) +
   theme(axis.text.x = element_text(face = "bold", size = 7),
         axis.title.x = element_text(face = "bold", size = 7)) +
   theme(plot.title = element_text(size = 7, face = "bold")) +
-  annotate("text", x = 10, y = 3.5,
+  annotate("text", x = 18, y = 22,
            label = paste("R2 = ", signif(summary(fittPCB)$adj.r.squared,
                                          2),
                          " m =", signif(fittPCB$coef[[2]], 2),
                          " p =", signif(summary(fittPCB)$coef[2,4],
                                         2)),
-           size = 2, fontface = 2)
+           size = 2, fontface = 2) +
+  annotation_logticks(sides = "l",
+                      short = unit(0.5, "mm"),
+                      mid = unit(1.5, "mm"),
+                      long = unit(2, "mm"))
 
 # Plot all plots in one panel (Figure 5)
 ggarrange(p8.toc, p11.toc, p52.toc, p136.toc, p209.toc, ptPCB.toc, ncol=2)
