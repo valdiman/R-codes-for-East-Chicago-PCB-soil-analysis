@@ -17,6 +17,7 @@ install.packages("ggpubr")
 install.packages("reshape2")
 install.packages("userfriendlyscience")
 install.packages("egg")
+install.packages("ggfortify")
 
 # Libraries
 library(readxl)
@@ -28,6 +29,7 @@ library(ggpubr) # ggarrange
 library(reshape2) # melt
 library(userfriendlyscience)
 library(egg)
+library(ggfortify) # PCA analysis
 
 # Read data.xlsx
 # Data in ng/g
@@ -1014,12 +1016,6 @@ ggplot(prof.ave, aes(x = congener, y = mean)) +
 
 # PCA plot (Figures 8 and S4) -----------------------------------------------------
 
-# Install packages
-install.packages("ggfortify")
-
-# Library
-library(ggfortify)
-
 # Prepare data
 t.prof <- data.frame(t(prof))
 colnames(t.prof) <- meta.s$sample.code
@@ -1660,7 +1656,6 @@ s.prof[1:128, 15] <- c(0.00699336152201969,	0.00213197469418328,	0.0041152974523
 # Combine East Chicago soil and other PCB profiles
 prof.f <- data.frame(cbind(t.prof, s.prof))
 t.prof.f <- t(prof.f)
-
 
 # Perform PCA all samples
 PCA <- prcomp(t.prof.f)
