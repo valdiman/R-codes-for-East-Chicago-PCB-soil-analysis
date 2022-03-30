@@ -1684,12 +1684,7 @@ ggplot2::autoplot(PCA, data = t.prof.f, frame = TRUE,
   annotate("text", x = 0.08, y = 0.17, label = "Volatilization LM",
            size = 2.4, fontface = 1)
 
-
-ggplot2::autoplot(PCA, data = t.prof.f, label = TRUE,
-                  label.size = 2, size = 0.5)
-
-
-# Perform PCA removing Aroclors 1221 and 1232 (Figure S4)
+# Perform PCA removing Aroclors 1221, 1232 and 1262 (Figure S4)
 # Remove Aroclors 1221, 1232
 prof.f.2 <- subset(prof.f, select = -c(X1221.Koh, X1221.Frame, X1232.Frame,
                                        X1262.Frame))
@@ -1706,26 +1701,25 @@ ggplot2::autoplot(PCA.2, data = t.prof.2,
   stat_ellipse(color = "red") +
   theme_bw() +
   theme(aspect.ratio = 10/10) +
-  annotate("text", x = 0.26, y = 0.22, label = "Aroclor 1016",
+  annotate("text", x = 0.3, y = 0.32, label = "Aroclor 1016",
            size = 2.4, fontface = 1) +
-  annotate("text", x = 0.23, y = 0.16, label = "Aroclor 1242",
+  annotate("text", x = 0.25, y = 0.25, label = "Aroclor 1242",
            size = 2.4, fontface = 1) +
-  annotate("text", x = 0.295, y = -0.08, label = "Aroclor 1248",
+  annotate("text", x = 0.27, y = -0.03, label = "Aroclor 1248",
            size = 2.4, fontface = 1) +
-  annotate("text", x = -0.19, y = 0.25, label = "Aroclor 1260*",
+  annotate("text", x = -0.22, y = 0.4, label = "Aroclor 1260*",
            size = 2.4, fontface = 1) +
-  annotate("text", x = -0.035, y = -0.22, label = "Aroclor 1254*",
+  annotate("text", x = -0.064, y = -0.255, label = "Aroclor 1254*",
            size = 2.4, fontface = 1) +
-  annotate("text", x = -0.04, y = -0.18, label = "Aroclor 1254",
+  annotate("text", x = -0.08, y = -0.285, label = "Aroclor 1254",
            size = 2.4, fontface = 1) +
-  annotate("text", x = -0.06, y = 0.15, label = "EPA soil",
+  annotate("text", x = -0.1, y = 0.17, label = "EPA soil",
            size = 2.4, fontface = 1) +
-  annotate("text", x = 0.195, y = 0.105, label = "Emission IHSC",
+  annotate("text", x = 0.3, y = 0.15, label = "Emission IHSC",
            size = 2.4, fontface = 1) +
-  annotate("text", x = -0.24, y = -0.035, label = "CR soil",
+  annotate("text", x = -0.25, y = 0.0, label = "CR soil",
            size = 2.4, fontface = 1) +
-  annotate("text", x = 0.025, y = 0.105, label = "EC air",
+  annotate("text", x = 0.1, y = 0.105, label = "EC air",
            size = 2.4, fontface = 1) +
   annotate("text", x = 0.22, y = 0.055, label = "Volatilization LM",
            size = 2.4, fontface = 1)
-
