@@ -1647,9 +1647,9 @@ t.prof.f <- t(prof.f)
 PCA <- prcomp(t.prof.f)
 
 # Plot PCA results (Figure 8)
-ggplot2::autoplot(PCA, data = t.prof.f,
-                  frame = TRUE, frame.type = "t", size = 1.5,
-                  shape = 21) +
+ggplot2::autoplot(PCA, data = t.prof.f, frame = TRUE,
+                  frame.type = "t", size = 1.5, shape = 21) +
+  stat_ellipse(color = "red") +
   theme_bw() +
   xlim(-0.15, 0.63) +
   theme(aspect.ratio = 10/10) +
@@ -1663,9 +1663,9 @@ ggplot2::autoplot(PCA, data = t.prof.f,
            size = 2.4, fontface = 1) +
   annotate("text", x = 0.105, y = 0.27, label = "Aroclor 1242",
            size = 2.4, fontface = 1) +
-  annotate("text", x = 0.0, y = 0.26, label = "Aroclor 1248",
+  annotate("text", x = 0.01, y = 0.26, label = "Aroclor 1248",
            size = 2.4, fontface = 1) +
-  annotate("text", x = -0.1, y = -0.29, label = "Aroclor 1260*",
+  annotate("text", x = -0.1, y = -0.28, label = "Aroclor 1260*",
            size = 2.4, fontface = 1) +
   annotate("text", x = 0.079, y = -0.06, label = "Aroclor 1262*",
            size = 2.4, fontface = 1) +
@@ -1675,7 +1675,7 @@ ggplot2::autoplot(PCA, data = t.prof.f,
            size = 2.4, fontface = 1) +
   annotate("text", x = 0.0, y = -0.134, label = "EPA soil",
            size = 2.4, fontface = 1) +
-  annotate("text", x = -0.02, y = 0.31, label = "Emission IHSC",
+  annotate("text", x = -0.04, y = 0.3, label = "Emission IHSC",
            size = 2.4, fontface = 1) +
   annotate("text", x = -0.125, y = -0.25, label = "CR soil",
            size = 2.4, fontface = 1) +
