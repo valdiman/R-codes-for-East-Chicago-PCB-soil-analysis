@@ -1016,7 +1016,7 @@ ggplot(prof.ave, aes(x = congener, y = mean)) +
 
 # PCA plot (Figures 8 and S4) -----------------------------------------------------
 
-# Prepare data
+# Prepare data from above section
 t.prof <- data.frame(t(prof))
 colnames(t.prof) <- meta.s$sample.code
 
