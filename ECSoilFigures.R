@@ -1024,8 +1024,8 @@ colnames(t.prof) <- meta.s$sample.code
 s.prof <- matrix(NA, nrow = 128, ncol = 15)
 
 # Add profile and PCBs names
-colnames(s.prof) <- c("1016.Koh", "1242.Koh", "1232.Frame", "1221.Koh",
-                      "1221.Frame", "1248.Koh", "1254.Koh", "1254.Frame",
+colnames(s.prof) <- c("1016.Koh", "1242.Koh", "1232.Frame", "1221.Frame",
+                      "1221.Koh", "1248.Koh", "1254.Koh", "1254.Frame",
                       "1260.Frame", "1262.Frame", "CR", "EPA", "emission",
                       "ECair", "LM")
 
@@ -1651,42 +1651,42 @@ ggplot2::autoplot(PCA, data = t.prof.f,
                   frame = TRUE, frame.type = "t", size = 1.5,
                   shape = 21) +
   theme_bw() +
-  #xlim(-0.21, 0.63) +
+  xlim(-0.15, 0.63) +
   theme(aspect.ratio = 10/10) +
   annotate("text", x = 0.6, y = -0.139, label = "Aroclor 1221*",
            size = 2.4, fontface = 1) +
-  annotate("text", x = 0.6, y = -0.3, label = "Aroclor 1221",
+  annotate("text", x = 0.6, y = -0.09, label = "Aroclor 1221",
            size = 2.4, fontface = 1) +
-  annotate("text", x = 0.35, y = 0.027, label = "Aroclor 1232*",
+  annotate("text", x = 0.35, y = 0.024, label = "Aroclor 1232*",
            size = 2.4, fontface = 1) +
-  annotate("text", x = 0.2, y = 0.26, label = "Aroclor 1016",
+  annotate("text", x = 0.12, y = 0.3, label = "Aroclor 1016",
            size = 2.4, fontface = 1) +
-  annotate("text", x = 0.18, y = 0.235, label = "Aroclor 1242",
+  annotate("text", x = 0.105, y = 0.27, label = "Aroclor 1242",
            size = 2.4, fontface = 1) +
   annotate("text", x = 0.0, y = 0.26, label = "Aroclor 1248",
            size = 2.4, fontface = 1) +
   annotate("text", x = -0.1, y = -0.29, label = "Aroclor 1260*",
            size = 2.4, fontface = 1) +
-  annotate("text", x = 0.095, y = -0.1, label = "Aroclor 1262*",
+  annotate("text", x = 0.079, y = -0.06, label = "Aroclor 1262*",
            size = 2.4, fontface = 1) +
-  annotate("text", x = -0.16, y = -0.05, label = "Aroclor 1254*",
+  annotate("text", x = -0.13, y = -0.08, label = "Aroclor 1254*",
            size = 2.4, fontface = 1) +
-  annotate("text", x = -0.148, y = -0.079, label = "Aroclor 1254",
+  annotate("text", x = -0.124, y = -0.1, label = "Aroclor 1254",
            size = 2.4, fontface = 1) +
-  annotate("text", x = -0.01, y = -0.134, label = "EPA soil",
+  annotate("text", x = 0.0, y = -0.134, label = "EPA soil",
            size = 2.4, fontface = 1) +
-  annotate("text", x = 0.102, y = 0.3, label = "Emission IHSC",
+  annotate("text", x = -0.02, y = 0.31, label = "Emission IHSC",
            size = 2.4, fontface = 1) +
-  annotate("text", x = -0.135, y = -0.225, label = "CR soil",
+  annotate("text", x = -0.125, y = -0.25, label = "CR soil",
            size = 2.4, fontface = 1) +
-  annotate("text", x = 0.1, y = 0.05, label = "EC air",
+  annotate("text", x = 0.1, y = 0.07, label = "EC air",
            size = 2.4, fontface = 1) +
-  annotate("text", x = 0.12, y = 0.15, label = "Volatilization LM",
+  annotate("text", x = 0.08, y = 0.17, label = "Volatilization LM",
            size = 2.4, fontface = 1)
 
 
-ggplot2::autoplot(PCA, data = t.prof.f, label = FALSE,
-                  label.size = 3.5, size = 0.5)
+ggplot2::autoplot(PCA, data = t.prof.f, label = TRUE,
+                  label.size = 2, size = 0.5)
 
 
 # Perform PCA removing Aroclors 1221 and 1232 (Figure S4)
