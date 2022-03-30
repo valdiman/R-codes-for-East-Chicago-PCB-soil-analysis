@@ -1691,7 +1691,8 @@ ggplot2::autoplot(PCA, data = t.prof.f, label = TRUE,
 
 # Perform PCA removing Aroclors 1221 and 1232 (Figure S4)
 # Remove Aroclors 1221, 1232
-prof.f.2 <- subset(prof.f, select = -c(X1221.Koh, X1221.Frame, X1232.Frame))
+prof.f.2 <- subset(prof.f, select = -c(X1221.Koh, X1221.Frame, X1232.Frame,
+                                       X1262.Frame))
 t.prof.2 <- t(prof.f.2)
 
 # Perform 
@@ -1702,6 +1703,7 @@ PCA.2 <- prcomp(t.prof.2)
 ggplot2::autoplot(PCA.2, data = t.prof.2,
                   frame = TRUE, frame.type = "t", size = 1.5,
                   shape = 21) +
+  stat_ellipse(color = "red") +
   theme_bw() +
   theme(aspect.ratio = 10/10) +
   annotate("text", x = 0.26, y = 0.22, label = "Aroclor 1016",
@@ -1725,7 +1727,5 @@ ggplot2::autoplot(PCA.2, data = t.prof.2,
   annotate("text", x = 0.025, y = 0.105, label = "EC air",
            size = 2.4, fontface = 1) +
   annotate("text", x = 0.22, y = 0.055, label = "Volatilization LM",
-           size = 2.4, fontface = 1) +
-  annotate("text", x = 0.05, y = 0.7, label = "Aroclor 1262*",
            size = 2.4, fontface = 1)
 
