@@ -1104,18 +1104,18 @@ for (i in 1:length(prof.f.2[1,])) {
 costheta.av[upper.tri(costheta.av)] <- NA
 
 # Add name to columns
-colnames(costheta.av) <- c("mean", "CR Soil", "EPA soil",
-                           "Emission IHSC", "EC air", "LMV",
-                           "1016.Koh", "1242.Koh", "1232.Frame",
-                           "1221.Koh", "1221.Frame", "1248.Koh", "1254.Koh",
-                           "1254.Frame", "1260.Frame", "1262.Frame")
+colnames(costheta.av) <- c("mean", "1016.Koh", "1242.Koh", "1232.Frame",
+                           "1221.Frame", "1221.Koh", "1248.Koh", "1254.Koh",
+                           "1254.Frame", "1260.Frame", "1262.Frame",
+                           "CR Soil", "EPA soil", "Emission IHSC", "EC air",
+                           "LMV")
 
 # Add names to rows
-rownames(costheta.av) <- c("mean", "CR Soil", "EPA soil",
-                           "Emission IHSC", "EC air", "LMV",
-                           "1016.Koh", "1242.Koh", "1232.Frame",
-                           "1221.Koh", "1221.Frame", "1248.Koh", "1254.Koh",
-                           "1254.Frame", "1260.Frame", "1262.Frame")
+rownames(costheta.av) <- c("mean", "1016.Koh", "1242.Koh", "1232.Frame",
+                           "1221.Frame", "1221.Koh", "1248.Koh", "1254.Koh",
+                           "1254.Frame", "1260.Frame", "1262.Frame",
+                           "CR Soil", "EPA soil", "Emission IHSC", "EC air",
+                           "LMV")
 
 # Individual sample analysis
 # Matrix from section PCA, prof.f
