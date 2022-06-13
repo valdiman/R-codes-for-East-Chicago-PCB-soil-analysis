@@ -18,6 +18,7 @@ install.packages("reshape2")
 install.packages("userfriendlyscience")
 install.packages("egg")
 install.packages("ggfortify")
+install.packages('pangaear')
 
 # Libraries
 library(readxl)
