@@ -1,43 +1,123 @@
-# Anova -------------------------------------------------------------------
-# For total PCB EC and other locations
+# R codes for statistical analysis for East Chicago PCB Soil paper
 
-# Here I'm using data from my folder.
-# Once the dataset in Pangaea is ready, this need to be updated
-
-# set working directory
-setwd(paste("/Users/andres/OneDrive - University of Iowa/work",
-            "/ISRP/Project6/Soil/Data", sep = ""))
-
+# Packages and libraries needed -------------------------------------------------------------------
 # Install packages
-install.packages("readxl")
+install.packages('pangaear')
 install.packages("userfriendlyscience")
 install.packages("reshape2")
 install.packages("ggfortify")
+install.packages("tidyverse")
+install.packages('ggplot')
 
 # Library
-library(readxl)
+library(pangaear) # Read data from Pangaea
 library(userfriendlyscience) # Perform Tukey test
 library(reshape2) # for melt function
 library(ggfortify)
+library(tidyverse) # data manipulation
 
-# Read data.xlsx
-# Soil concentration in ng/g
-s <- read_excel("DataSoilV02.xlsx", sheet = "tConcentrationV05",
-                col_names = TRUE, col_types = NULL)
+# Read data from Pangaea and format data ------------------------------
 
-# Obtain total PCB
-# Remove metadata from dataset
-s.1 <- subset(s, select = -c(sample.code:lat))
+# Read data from Pangaea repository
+# Citation:
+# Martinez, Andres; Hua, Jason; Haque, Ezazul; Thorne, Peter;
+# Hornbuckle, Keri C (2022): Dataset of concentrations of
+# individual polychlorinated biphenyl congeners and total
+# organic carbon in soils from East Chicago, Indiana, USA in
+# 2017/2018. PANGAEA, https://doi.pangaea.de/10.1594/PANGAEA.941894
 
+# Set cache path to the project folder
+pg_cache$cache_path_set(full_path = "/Users/andres/OneDrive - University of Iowa/work/ISRP/Project6/Soil/R/ECSS")
+
+# Download original datasets from Pangaea
+s.0 <- pg_data(doi = '10.1594/PANGAEA.941881') # soil dataset
+b.0 <- pg_data(doi = '10.1594/PANGAEA.941686') # blank dataset
+toc.0 <- pg_data(doi = '10.1594/PANGAEA.941884') # toc dataset
+
+# Obtain just concentrations from Pangaea dataset
+s <- data.frame(s.0[[1]]$data) # ng/g
+b <- data.frame(b.0[[1]]$data)
+toc <- data.frame(toc.0[[1]]$data)
+
+# Format concentration data for plotting
+# Remove metadata from soil dataset
+s.1 <- subset(s, select = -c(Event:Distance..m...Distance.to.Fork.))
+# Rename PCB congener in columns in s.1
+names(s.1) <- substr(names(s.1), 18, 36) # Leave PCB names
+names(s.1) <- sub("\\.", "+", names(s.1)) # change "." to "+"
+names(s.1) <- sub("\\.", "+", names(s.1)) # change "." to "+"
+names(s.1) <- sub("\\.", "+", names(s.1)) # change "." to "+"
+names(s.1) <- sub("\\.", "+", names(s.1)) # change "." to "+"
+names(s.1) <- gsub(".{1}$", "", names(s.1)) # Remove last "+"
+# Collect metadata
+meta.s <- subset(s, select = c(Sample.label, Longitude, Latitude,
+                               Distance..m...Distance.to.Fork.))
+
+# Remove metadata from blank dataset
+b.1 <- subset(b, select = -c(Event:Date.time.end))
+# Rename PCB congener in columns in b.1
+names(b.1) <- substr(names(b.1), 16, 36) # Leave PCB names
+names(b.1) <- sub("\\.", "+", names(b.1)) # change "." to "+"
+names(b.1) <- sub("\\.", "+", names(b.1)) # change "." to "+"
+names(b.1) <- sub("\\.", "+", names(b.1)) # change "." to "+"
+names(b.1) <- gsub(".{1}$", "", names(b.1)) # Remove last "+"
+
+# Create LOQ, i.e., upper 95 CI% (mean + 1.96*sd/(n)^0.5)
+b.1[b.1 == 0] <- NA # Not the best way, but zeros need to be removed for lo10 transformation
+log10b.1 <- log10(b.1) # log10 blank data
+loq <- colMeans(log10b.1, na.rm = TRUE) + 1.96*sapply(log10b.1, sd, na.rm = TRUE)/sqrt(8)
+loq <- data.frame(t(loq))
+names(loq) <- sub("\\.", "+", names(loq)) # change "."
+names(loq) <- sub("\\.", "+", names(loq)) # change "."
+names(loq) <- sub("\\.", "+", names(loq)) # change "."
+
+# Make comparison between s.1 and loq
+# If s.1 > loq, then s.1, if not 0
+# Create matrix to storage s.1 or loq values in s.2
+s.2 <- matrix(NA, nrow = dim(s.1)[1], ncol = dim(s.1)[2])
+# Do comparison
+for(i in 1:dim(s.1)[1]) {
+  for(j in 1:dim(s.1)[2]) {
+    if (log10(s.1[i, j]) > loq[j]) {
+      s.2[i, j] <- s.1[i, j]
+    } else {
+      s.2[i, j] <- 0
+    }
+  }
+}
+
+colnames(s.2) <- colnames(s.1) # add PCB names to columns.
+
+# Remove congeners with < 75% detection frequency
+s.2 <- s.2[, colMeans(s.2 > 0) >= 0.75]
+
+# Remove the same congeners in loq
+loq.2 <- loq %>% select(colnames(s.2))
+
+# Add loq value = (loq/(2)^0.5)), where zeros are in s.2
+# Create new matrix to storage final concentrations
+s.3 <- data.frame(matrix(NA, nrow = dim(s.2)[1],
+                         ncol = dim(s.2)[2]))
+
+for(i in 1:dim(s.3)[1]) {
+  for(j in 1:dim(s.3)[2]) {
+    if (s.2[i, j] == 0) {
+      s.3[i, j] <- 10^(loq.2[j])/sqrt(2)
+    } else {
+      s.3[i, j] <- s.2[i, j]
+    }
+  }
+}
+
+# Final dataset for concentrations, s.3
+colnames(s.3) <- colnames(s.2) # add PCB names to columns.
 # Sum individual PCB congeners to yield total PCB (tPCB)
-tPCB <- rowSums(s.1)
-
+tPCB <- rowSums(s.3)
 # Change to data.frame
 tPCB <- data.frame(tPCB)
 
-# Rename column names
-colnames(tPCB) <- c("tPCB")
-
+# Anova -------------------------------------------------------------------
+# For total PCB EC and other locations
 # Create matrix to storage external data
 s.Anova <- matrix(NA, nrow = 6, ncol = 73)
 
@@ -171,27 +251,30 @@ mcp <- data.frame(tgh$intermediate$posthocTGH$intermediate$pairNames,
 mcp.2 <- subset(mcp, tgh$intermediate$posthocTGH$output$games.howell$p < 0.05)
 
 # TOC vs PCBs regressions ------------------------------------------------
-# Using s
-# Remove samples with no TOC measurements
-s.toc <- data.frame(s[!s$TOC== 0,])
-s.toc.2 <- subset(s.toc, select = -c(sample.code:lat)) 
+# Include TOC data to s.3
+s.toc <- cbind(toc$TOC...., s.3)
+# Remove samples (row) where toc was not measured (NA)
+s.toc <- na.omit(s.toc)
+# Change name in s.toc to toc
+colnames(s.toc)[1] <- "toc"
 
 # Calculate log10 total PCB per sample
-tPCB.toc <- log10(rowSums(s.toc.2))
-# Obtain TOC in %
-toc <- s.toc$TOC*100
+tPCB.toc <- log10(rowSums(s.toc[, -1]))
+
 # Perform linear correlations
-fittPCB.toc <- lm(tPCB.toc ~ toc)
+fittPCB.toc <- lm(tPCB.toc ~ s.toc$toc)
 summary(fittPCB.toc)
 
 # Regression per congener
+# Remove TOC from s.toc
+s.toc.2 <- s.toc[, -1]
 # Create matrix
 TOC.matrix <- matrix(nrow = length(s.toc.2), ncol = 3)
 
 # Perform regression
 for(i in 1:length(s.toc.2)) {
   y <- as.numeric(t(log10(s.toc.2[,i])))
-  fit <- lm(y ~ toc)
+  fit <- lm(y ~ s.toc$toc)
   TOC.matrix[i,1] <- summary(fit)$coef[2,"Estimate"]
   TOC.matrix[i,2] <- summary(fit)$adj.r.squared
   TOC.matrix[i,3] <- summary(fit)$coef[2,"Pr(>|t|)"]
@@ -200,24 +283,23 @@ for(i in 1:length(s.toc.2)) {
 # Add column names
 colnames(TOC.matrix) <- c("slope", "R2", "p-value")
 # Add PCB congener names
-rownames(TOC.matrix) <- names(s.toc.2)
+rownames(TOC.matrix) <- names(s.3)
 
 # Distance to The Fork (IHSC) vs PCBs regressions --------------------------
-# Using s and s.1
-# For total PCB (log10)
-logtPCB <- log10(rowSums(s.1))
-dist <- s$distance
+# Change name to distance in s
+colnames(s)[8] <- "distanceFork"
+dist <- s$distanceFork # m
 # Perform linear correlations
-fittPCB.dist <- lm(logtPCB ~ dist)
+fittPCB.dist <- lm(log10(rowSums(s.3)) ~ dist)
 summary(fittPCB.dist)
 
 # Regression per congeners
 # Create matrix
-dist.matrix <- matrix(nrow = length(s.1), ncol = 3)
+dist.matrix <- matrix(nrow = length(s.3), ncol = 3)
 
 # Perform regression
-for(i in 1:length(s.1)) {
-  y <- as.numeric(t(log10(s.1[,i])))
+for(i in 1:length(s.3)) {
+  y <- as.numeric(t(log10(s.3[,i])))
   fit <- lm(y ~ dist)
   dist.matrix[i,1] <- summary(fit)$coef[2,"Estimate"]
   dist.matrix[i,2] <- summary(fit)$adj.r.squared
@@ -227,26 +309,32 @@ for(i in 1:length(s.1)) {
 # Add column names
 colnames(dist.matrix) <- c("slope", "R2", "p-value")
 # Add PCB congener names
-rownames(dist.matrix) <- names(s.1)
+rownames(dist.matrix) <- names(s.3)
 
 # Multiple linear regression (MLR) ----------------------------------------------
 # TOC, distance
-# Using s.toc (toc = 0 samples removed) and s.toc.2
-
-dist.mlr <- s.toc$distance
-
+s.mlr <- cbind(s$distanceFork, toc$TOC...., s.3)
+# Change distance and toc names
+# ??
+# Remove samples (row) where toc was not measured (NA)
+s.mlr <- na.omit(s.mlr)
+tPCB.mlr <- select(s.mlr, -c(1:2))
+tPCB.mlr <- rowSums(tPCB.mlr)
+toc.mlr <- s.mlr$`toc$TOC....`
+dist.mlr <- s.mlr$`s$distanceFork`
+  
 # Perform MLR for total PCB
-fittPCB.mlr <- lm(tPCB.toc ~ toc + dist.mlr)
+fittPCB.mlr <- lm(log10(tPCB.mlr) ~ toc.mlr + dist.mlr)
 summary(fittPCB.mlr)
 
 # Multiple linear regression per congeners
 # Create matrix
-mlr.matrix <- matrix(nrow = length(s.toc.2), ncol = 6)
+mlr.matrix <- matrix(nrow = length(s.3), ncol = 6)
 
 # Perform MLR
-for(i in 1:length(s.toc.2)) {
+for(i in 1:length(s.3)) {
   y <- as.numeric(t(log10(s.toc.2[,i])))
-  fit <- lm(y ~ toc + dist.mlr)
+  fit <- lm(y ~ toc.mlr + dist.mlr)
   mlr.matrix[i,1] <- summary(fit)$coef[2,"Estimate"]
   mlr.matrix[i,2] <- summary(fit)$coef[3,"Estimate"]
   mlr.matrix[i,3] <- summary(fit)$coef[2,"Pr(>|t|)"]
@@ -267,7 +355,7 @@ rownames(mlr.matrix) <- names(s.toc.2)
 # PCB vs Metals regressions ----------------------------------------------
 # Using s
 # Create matrix to storage metal data
-metal.matrix <- matrix(nrow = length(s$sample.code),
+metal.matrix <- matrix(nrow = length(s$Sample.label),
                        ncol = 14)
 
 # Add column names, metals
@@ -275,7 +363,7 @@ colnames(metal.matrix) <- c("location", "S", "K", "Ca", "Ti", "Cr", "Mn", "Fe",
                             "Cu", "Zn", "Rb", "Sr", "Zr", "Pb")
 
 # Add row names, locations
-metal.matrix[,1] <- c(s$location)
+metal.matrix[,1] <- c(s$Sample.label)
 
 # Fill metal data in metal.matrix per location
 # Ref:
@@ -379,7 +467,7 @@ metal.matrix.3 <- matrix(nrow = length(metal.matrix.2), ncol = 3)
 # Perform total PCB vs. metals regressions
 for(i in 1:length(metal.matrix.2)) {
   y <- metal.matrix.2[,i]
-  fit <- lm(rowSums(s.1) ~ y)
+  fit <- lm(rowSums(s.3) ~ y)
   metal.matrix.3[i,1] <- summary(fit)$coef[2,"Estimate"]
   metal.matrix.3[i,2] <- summary(fit)$adj.r.squared
   metal.matrix.3[i,3] <- summary(fit)$coef[2,"Pr(>|t|)"]
@@ -401,7 +489,7 @@ metal.matrix.4 <- matrix(nrow = length(metal.matrix.2), ncol = 3)
 # Perform regression analysis
 for(i in 1:length(metal.matrix.2)) {
   y <- metal.matrix.2[,i]
-  fit <- lm(rowSums(s.1) ~ log10(y))
+  fit <- lm(rowSums(s.3) ~ log10(y))
   metal.matrix.4[i,1] <- summary(fit)$coef[2,"Estimate"]
   metal.matrix.4[i,2] <- summary(fit)$adj.r.squared
   metal.matrix.4[i,3] <- summary(fit)$coef[2,"Pr(>|t|)"]
@@ -415,13 +503,13 @@ rownames(metal.matrix.4) <- names(metal.matrix.2)
 
 # Regression analysis per congeners
 # Create matrix
-metal.matrix.5 <- matrix(nrow = length(s.1), ncol = 3)
+metal.matrix.5 <- matrix(nrow = length(s.3), ncol = 3)
 
 # Perform regression analysis
 # Metal needs to be selected/changed from metal.matrix.2
-for(i in 1:length(s.1)) {
-  y <- as.numeric(t(s.1[,i]))
-  fit <- lm(log10(y) ~ log10(metal.matrix.2$Zr)) # Metal need to be selected/changed
+for(i in 1:length(s.3)) {
+  y <- as.numeric(t(s.3[,i]))
+  fit <- lm(y ~ metal.matrix.2) # Metal need to be selected/changed. Log10 can also be performed here.
   metal.matrix.5[i,1] <- summary(fit)$coef[2,"Estimate"]
   metal.matrix.5[i,2] <- summary(fit)$adj.r.squared
   metal.matrix.5[i,3] <- summary(fit)$coef[2,"Pr(>|t|)"]
@@ -431,7 +519,7 @@ for(i in 1:length(s.1)) {
 colnames(metal.matrix.5) <- c("slope", "R2", "p-value")
 
 # Add metals names
-rownames(metal.matrix.5) <- names(s.1)
+rownames(metal.matrix.5) <- names(s.3)
 
 # PCA ---------------------------------------------------------------------
 # Create individual PCB congener profiles
@@ -440,17 +528,14 @@ rownames(metal.matrix.5) <- names(s.1)
 # check s.1
 
 # Generate PCB profile for individual samples
-tmp <- rowSums(s.1, na.rm = TRUE)
-prof <- sweep(s.1, 1, tmp, FUN = "/")
+tmp <- rowSums(s.3, na.rm = TRUE)
+prof <- sweep(s.3, 1, tmp, FUN = "/")
 
 # Prepare data for PCA
 t.prof <- data.frame(t(prof))
 
-# Collect metadata
-meta.s <- subset(s, select = c(sample.code:lat))
-
 # Add column names with samples name
-colnames(t.prof) <- meta.s$sample.code
+colnames(t.prof) <- meta.s$Sample.label
 
 # Create matrix to Include other PCB profiles
 ot.prof <- matrix(NA, nrow = length(t.prof[,1]), ncol = 15)
@@ -1077,16 +1162,12 @@ summary(PCA.2)
 # Cosine Theta Analysis ---------------------------------------------------
 # First, using average PCB congener profile
 # Data from section PCA
-
 prof.ave <- data.frame(colMeans(prof))
 colnames(prof.ave) <- c("mean")
-
 # Select other profiles
 ot.prof.2 <- prof.f[, 34:48]
-
 # Combine both
 prof.f.2 <- cbind(prof.ave, ot.prof.2)
-
 # Create matrix to storage results
 costheta.av <- matrix(nrow = length(prof.f.2[1,]),
                       ncol = length(prof.f.2[1,]))
@@ -1102,14 +1183,12 @@ for (i in 1:length(prof.f.2[1,])) {
 
 # Remove upper diagonal values
 costheta.av[upper.tri(costheta.av)] <- NA
-
 # Add name to columns
 colnames(costheta.av) <- c("mean", "1016.Koh", "1242.Koh", "1232.Frame",
                            "1221.Frame", "1221.Koh", "1248.Koh", "1254.Koh",
                            "1254.Frame", "1260.Frame", "1262.Frame",
                            "CR Soil", "EPA soil", "Emission IHSC", "EC air",
                            "LMV")
-
 # Add names to rows
 rownames(costheta.av) <- c("mean", "1016.Koh", "1242.Koh", "1232.Frame",
                            "1221.Frame", "1221.Koh", "1248.Koh", "1254.Koh",
@@ -1120,7 +1199,6 @@ rownames(costheta.av) <- c("mean", "1016.Koh", "1242.Koh", "1232.Frame",
 # Individual sample analysis
 # Matrix from section PCA, prof.f
 # Create matrix to storage results
-
 costheta.samples <- matrix(nrow = length(prof.f[1,]),
                            ncol = length(prof.f[1,]))
 
@@ -1134,10 +1212,8 @@ for (i in 1:length(prof.f[1,])) {
 
 # Remove upper diagonal values
 costheta.samples[upper.tri(costheta.samples)] <- NA
-
 # Add column names with samples name
 colnames(costheta.samples) <- colnames(prof.f)
-
 # Add row names with samples name
 rownames(costheta.samples) <- colnames(prof.f)
 
@@ -1156,20 +1232,16 @@ rownames(costheta.samples) <- colnames(prof.f)
 tef <- c(0.0001, 0.0003, 0.00003, 0.00003, 0.00003, 0.00003,
          0.00003)
 tef.1 <-t(tef)
-
-s.tef <- subset(s, select = c(PCB77, PCB81, PCB105, PCB114, PCB118,
+s.tef <- subset(s.3, select = c(PCB77, PCB81, PCB105, PCB114, PCB118,
                               PCB123, PCB189))
 s.tef.1 <- t(s.tef)
 
 # pg TCCD TEQ/g dw
 s.teq <- as.vector(tef.1)*s.tef.1*1000
 s.teq.1 <- t(s.teq)
-
 s.teq.sum <- rowSums(s.teq.1)
 
 # Linear regression
-fittPCB.teq <- lm(s.teq.sum ~ rowSums(s.1))
+fittPCB.teq <- lm(s.teq.sum ~ rowSums(s.3))
 summary(fittPCB.teq)
-
-
 
