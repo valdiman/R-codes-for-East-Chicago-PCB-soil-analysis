@@ -4,7 +4,7 @@
 
 This README file was generated on March 02 2022 by Andres Martinez (ORCID: 0000-0002-0572-1494)
 
-This README file describes both scripts statistical analysis and figures (maps and plots) use for the East Chicago Soil paper. The data can be downloaded from PANGAEA (link), using the R package pangaear (https://cran.microsoft.com/snapshot/2022-01-01/web/packages/pangaear/pangaear.pdf).
+This README file describes both scripts statistical analysis and figures (maps and plots) use for the East Chicago Soil paper. The data can be downloaded from PANGAEA (link), using the R package pangaear (https://doi.org/10.1594/PANGAEA.941894).
 
 This work was supported by the National Institutes of Environmental Health Sciences (NIEHS) grant #P42ES013661 and the University of Iowa’s Environmental Health Sciences Research Center. The funding sponsor did not have any role in study design; in collection, analysis, and/or interpretation of data; in creation of the dataset; and/or in the decision to submit this data for publication or deposit it in a repository.
 
