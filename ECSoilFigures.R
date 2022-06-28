@@ -1,12 +1,6 @@
-# Maps (Figures 1, S1, S2, S3) ---------------------------------------------
+# R codes for creating figures and maps for East Chicago PCB Soil paper
 
-# Here I'm using data from my folder.
-# Once the dataset in Pangaea is ready, this need to be updated
-
-# set working directory
-setwd(paste("/Users/andres/OneDrive - University of Iowa/work",
-            "/ISRP/Project6/Soil/Data", sep = ""))
-
+# Packages and libraries needed -------------------------------------------------------------------
 # Install packages
 install.packages("readxl")
 install.packages("ggplot2")
@@ -15,38 +9,132 @@ install.packages("ggrepel")
 install.packages("scales")
 install.packages("ggpubr")
 install.packages("reshape2")
-install.packages("userfriendlyscience")
 install.packages("egg")
 install.packages("ggfortify")
 install.packages('pangaear')
+install.packages("tidyverse")
 
 # Libraries
-library(readxl)
-library(ggmap) # make_bbox
+library(pangaear) # Read data from Pangaea
 library(ggplot2) # make_bbox
+library(ggmap) # make_bbox
 library(ggrepel) #geom_label_repel
 library(scales) # comma_format
 library(ggpubr) # ggarrange
+library(egg) # ggarrange too
 library(reshape2) # melt
-library(userfriendlyscience)
-library(egg)
 library(ggfortify) # PCA analysis
+library(tidyverse) # data manipulation
 
-# Read data.xlsx
-# Data in ng/g
-s <- read_excel("DataSoilV02.xlsx", sheet = "tConcentrationV05",
-                col_names = TRUE, col_types = NULL)
+# Read data from Pangaea and format data ------------------------------
+
+# Read data from Pangaea repository
+# Citation:
+# Martinez, Andres; Hua, Jason; Haque, Ezazul; Thorne, Peter;
+# Hornbuckle, Keri C (2022): Dataset of concentrations of
+# individual polychlorinated biphenyl congeners and total
+# organic carbon in soils from East Chicago, Indiana, USA in
+# 2017/2018. PANGAEA, https://doi.pangaea.de/10.1594/PANGAEA.941894
+
+# Set cache path to the project folder
+pg_cache$cache_path_set(full_path = "/Users/andres/OneDrive - University of Iowa/work/ISRP/Project6/Soil/R/ECSS")
+
+# Download original datasets from Pangaea
+s.0 <- pg_data(doi = '10.1594/PANGAEA.941881') # soil dataset
+b.0 <- pg_data(doi = '10.1594/PANGAEA.941686') # blank dataset
+toc.0 <- pg_data(doi = '10.1594/PANGAEA.941884') # toc dataset
+
+# Obtain just concentrations from Pangaea dataset
+s <- data.frame(s.0[[1]]$data) # ng/g
+b <- data.frame(b.0[[1]]$data)
+toc <- data.frame(toc.0[[1]]$data)
+
+# Format concentration data for plotting
+# Remove metadata from soil dataset
+s.1 <- subset(s, select = -c(Event:Distance..m...Distance.to.Fork.))
+# Rename PCB congener in columns in s.1
+names(s.1) <- substr(names(s.1), 18, 36) # Leave PCB names
+names(s.1) <- sub("\\.", "+", names(s.1)) # change "." to "+"
+names(s.1) <- sub("\\.", "+", names(s.1)) # change "." to "+"
+names(s.1) <- sub("\\.", "+", names(s.1)) # change "." to "+"
+names(s.1) <- sub("\\.", "+", names(s.1)) # change "." to "+"
+names(s.1) <- gsub(".{1}$", "", names(s.1)) # Remove last "+"
+# Collect metadata
+meta.s <- subset(s, select = c(Sample.label, Longitude, Latitude,
+                               Distance..m...Distance.to.Fork.))
+
+# Remove metadata from blank dataset
+b.1 <- subset(b, select = -c(Event:Date.time.end))
+# Rename PCB congener in columns in b.1
+names(b.1) <- substr(names(b.1), 16, 36) # Leave PCB names
+names(b.1) <- sub("\\.", "+", names(b.1)) # change "." to "+"
+names(b.1) <- sub("\\.", "+", names(b.1)) # change "." to "+"
+names(b.1) <- sub("\\.", "+", names(b.1)) # change "." to "+"
+names(b.1) <- gsub(".{1}$", "", names(b.1)) # Remove last "+"
+
+# Create LOQ, i.e., upper 95 CI% (mean + 1.96*sd/(n)^0.5)
+b.1[b.1 == 0] <- NA # Not the best way, but zeros need to be removed for lo10 transformation
+log10b.1 <- log10(b.1) # log10 blank data
+loq <- colMeans(log10b.1, na.rm = TRUE) + 1.96*sapply(log10b.1, sd, na.rm = TRUE)/sqrt(8)
+loq <- data.frame(t(loq))
+names(loq) <- sub("\\.", "+", names(loq)) # change "."
+names(loq) <- sub("\\.", "+", names(loq)) # change "."
+names(loq) <- sub("\\.", "+", names(loq)) # change "."
+
+# Make comparison between s.1 and loq
+# If s.1 > loq, then s.1, if not 0
+# Create matrix to storage s.1 or loq values in s.2
+s.2 <- matrix(NA, nrow = dim(s.1)[1], ncol = dim(s.1)[2])
+# Do comparison
+for(i in 1:dim(s.1)[1]) {
+  for(j in 1:dim(s.1)[2]) {
+    if (log10(s.1[i, j]) > loq[j]) {
+      s.2[i, j] <- s.1[i, j]
+    } else {
+      s.2[i, j] <- 0
+    }
+  }
+}
+
+colnames(s.2) <- colnames(s.1) # add PCB names to columns.
+
+# Remove congeners with < 75% detection frequency
+s.2 <- s.2[, colMeans(s.2 > 0) >= 0.75]
+
+# Remove the same congeners in loq
+loq.2 <- loq %>% select(colnames(s.2))
+
+# Add loq value = (loq/(2)^0.5)), where zeros are in s.2
+# Create new matrix to storage final concentrations
+s.3 <- data.frame(matrix(NA, nrow = dim(s.2)[1], ncol = dim(s.2)[2]))
+
+for(i in 1:dim(s.3)[1]) {
+  for(j in 1:dim(s.3)[2]) {
+    if (s.2[i, j] == 0) {
+      s.3[i, j] <- 10^(loq.2[j])/sqrt(2)
+    } else {
+      s.3[i, j] <- s.2[i, j]
+    }
+  }
+}
+
+# Final dataset for concentrations, s.3
+colnames(s.3) <- colnames(s.2) # add PCB names to columns.
+
+# Maps and figures --------------------------------------------------------
 
 # Map with ggmap
 # Create a square map around samples
-IN.box <- make_bbox(lon = s$long, lat = s$lat, f = 0.6)
+IN.box <- make_bbox(lon = s$Longitude, lat = s$Latitude, f = 0.6)
 in.map <- get_stamenmap(bbox = IN.box, zoom = 13)
+# Change the location names
+s$Sample.label <- gsub('EC-', 's', s$Sample.label)
 
 # Map sampling locations (Figure S1)
 ggmap(in.map) +
-  geom_point(data = s, aes(x = long, y = lat)) +
-  geom_label_repel(aes(x = long, y = lat,
-                       label = location),
+  geom_point(data = s, aes(x = Longitude, y = Latitude)) +
+  geom_label_repel(aes(x = Longitude, y = Latitude,
+                       label = Sample.label),
                    data = s, size = 3, color = "red",
                    box.padding = unit(0.5, "lines"),
                    max.overlaps = getOption("ggrepel.max.overlaps",
@@ -55,19 +143,11 @@ ggmap(in.map) +
   ylab("Latitude") +
   labs(title = "East Chicago soil locations")
 
-# Prepare concentration data for plotting
-# Total PCBs
-# Remove metadata from dataset
-s.1 <- subset(s, select = -c(sample.code:lat))
-
-# Collect metadata
-meta.s <- subset(s, select = c(sample.code:lat))
-
 # Sum individual PCB congeners to yield total PCB (tPCB)
-tPCB <- rowSums(s.1)
+tPCB <- rowSums(s.3)
 
 # Add coordinates from sample locations
-tPCB <- data.frame(cbind(tPCB, s$long, s$lat))
+tPCB <- data.frame(cbind(tPCB, s$Longitude, s$Latitude))
 
 # Rename column names
 colnames(tPCB) <- c("tPCB", "long", "lat")
@@ -105,10 +185,11 @@ ggmap(in.map) +
 
 # Map individual congeners. E.g., PCB 8 (Figure S2).
 ggmap(in.map) +
-  geom_point(data = s, aes(x = long, y = lat,
-                           size = PCB8)) +
-  geom_label_repel(aes(x = long, y = lat,
-                       label = formatC(signif(PCB8, digits = 2))),
+  geom_point(data = s, aes(x = Longitude, y = Latitude,
+                           size = PCB.soil..ng.g...PCB8.)) +
+  geom_label_repel(aes(x = Longitude, y = Latitude,
+                       label = formatC(signif(PCB.soil..ng.g...PCB8.,
+                                              digits = 2))),
                    data = s, size = 3, color = "red",
                    box.padding = unit(0.5, "lines"),
                    max.overlaps = getOption("ggrepel.max.overlaps",
@@ -132,12 +213,13 @@ ggmap(in.map) +
            fontface = 2)
 
 # Map TOC (Figure S3)
+
 ggmap(in.map) +
-  geom_point(data = s, aes(x = long, y = lat,
-                           size = TOC*100), color = "black") +
-  geom_label_repel(aes(x = long, y = lat,
-                       label = formatC(signif(TOC*100, digits = 2))),
-                   data = s, size = 3, color = "red",
+  geom_point(data = toc, aes(x = Longitude, y = Latitude,
+                           size = TOC....), color = "black") +
+  geom_label_repel(aes(x = Longitude, y = Latitude,
+                       label = formatC(signif(TOC...., digits = 2))),
+                   data = toc, size = 3, color = "red",
                    box.padding = unit(0.5, "lines"),
                    max.overlaps = getOption("ggrepel.max.overlaps",
                                             default = 28)) +
@@ -162,7 +244,7 @@ ggmap(in.map) +
 
 # Spatial plots (Figure 2) ------------------------------------------------
 
-# Identify site location name for plotting
+# Organize site location name for plotting
 site <- c("s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9",
           "s10", "s11", "s12", "s13", "s14", "s15", "s16", "s17",
           "s18", "s19", "s20", "s21", "s22", "s23", "s24", "s25",
@@ -170,8 +252,9 @@ site <- c("s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9",
 
 # Spatial plot (Figure 2)
 # Individual PCB congener plots + tPCB
+# Data from s
 # PCB 8 plot
-p8 <- ggplot(s, aes(y = PCB8, x = factor(location,
+p8 <- ggplot(s, aes(y = PCB.soil..ng.g...PCB8., x = factor(Sample.label,
                                          levels = site))) + 
   geom_bar(stat = 'identity', width = 0.8, fill = "black") +
   scale_y_continuous(labels = comma_format(big.mark = ".",
@@ -191,7 +274,7 @@ p8 <- ggplot(s, aes(y = PCB8, x = factor(location,
              color = "#999999")
 
 # PCB 11 plot
-p11 <- ggplot(s, aes(y = PCB11, x = factor(location,
+p11 <- ggplot(s, aes(y = PCB.soil..ng.g...PCB11., x = factor(Sample.label,
                                            levels = site))) + 
   geom_bar(stat = 'identity', width = 0.8, fill = "black") +
   scale_y_continuous(labels = comma_format(big.mark = ".",
@@ -211,7 +294,7 @@ p11 <- ggplot(s, aes(y = PCB11, x = factor(location,
              color = "#999999")
 
 # PCB 52 plot
-p52 <- ggplot(s, aes(y = PCB52, x = factor(location,
+p52 <- ggplot(s, aes(y = PCB.soil..ng.g...PCB52., x = factor(Sample.label,
                                            levels = site))) + 
   geom_bar(stat = 'identity', width = 0.8, fill = "black") +
   scale_y_continuous(labels = comma_format(big.mark = ".",
@@ -231,7 +314,7 @@ p52 <- ggplot(s, aes(y = PCB52, x = factor(location,
              color = "#999999")
 
 # PCB 136 plot
-p136 <- ggplot(s, aes(y = PCB136, x = factor(location,
+p136 <- ggplot(s, aes(y = PCB.soil..ng.g...PCB136., x = factor(Sample.label,
                                              levels = site))) + 
   geom_bar(stat = 'identity', width = 0.8, fill = "black") +
   scale_y_continuous(labels = comma_format(big.mark = ".",
@@ -251,7 +334,7 @@ p136 <- ggplot(s, aes(y = PCB136, x = factor(location,
              color = "#999999") 
 
 # PCB 206 plot
-p206 <- ggplot(s, aes(y = PCB206, x = factor(location,
+p206 <- ggplot(s, aes(y = PCB.soil..ng.g...PCB206., x = factor(Sample.label,
                                              levels = site))) + 
   geom_bar(stat = 'identity', width = 0.8, fill = "black") +
   scale_y_continuous(labels = comma_format(big.mark = ".",
@@ -271,7 +354,7 @@ p206 <- ggplot(s, aes(y = PCB206, x = factor(location,
              color = "#999999")
 
 # PCB 209 plot
-p209 <- ggplot(s, aes(y = PCB209, x = factor(location,
+p209 <- ggplot(s, aes(y = PCB.soil..ng.g...PCB209., x = factor(Sample.label,
                                              levels = site))) + 
   geom_bar(stat = 'identity', width = 0.8, fill = "black") +
   scale_y_continuous(labels = comma_format(big.mark = ".",
@@ -291,7 +374,7 @@ p209 <- ggplot(s, aes(y = PCB209, x = factor(location,
              color = "#999999")
 
 # tPCB plot
-ptPCB <- ggplot(s, aes(y = rowSums(s.1), x = factor(location,
+ptPCB <- ggplot(s, aes(y = rowSums(s.3), x = factor(Sample.label,
                                                     levels = site))) + 
   geom_bar(stat = 'identity', width = 0.8, fill = "black") +
   theme_bw() +
@@ -314,13 +397,13 @@ ggarrange(p8, p11, p52, p136, p206, p209, ptPCB, ncol=1)
 # Total PCB concentration comparison plot (Figure 3) ----------------------
 
 # Create matrix to storage external data
-s.2 <- matrix(NA, nrow = 10, ncol = 73)
+s.tpcb <- matrix(NA, nrow = 10, ncol = 73)
 # Add column names for s.2
-colnames(s.2) <- paste0("s", 0:(ncol(s.2)-1))
-colnames(s.2)[1] <- c('location')
+colnames(s.tpcb) <- paste0("s", 0:(ncol(s.tpcb)-1))
+colnames(s.tpcb)[1] <- c('location')
 
-# Add location name to rows to s.2
-s.2[,1] <- c("(k) East Chicago, USA", "(a) Cedar Rapids, USA",
+# Add location name to rows to s.tpcb
+s.tpcb[,1] <- c("(k) East Chicago, USA", "(a) Cedar Rapids, USA",
              "(d) USA background", "(e) Global background",
              "(c) London, UK", "(b) China", "(f) Gadsden, USA",
              "(g) New Bedford, USA",
@@ -328,7 +411,7 @@ s.2[,1] <- c("(k) East Chicago, USA", "(a) Cedar Rapids, USA",
 
 # Fill matrix s.2 with total PCB data (ng/g) from EC and other studies
 # Row 1 East Chicago data from this study
-s.2[1, 2:34] <- tPCB$tPCB
+s.tpcb[1, 2:34] <- tPCB$tPCB
 
 # Row 2 Cedar Rapids, IA data
 # Ref: 
@@ -338,7 +421,7 @@ s.2[1, 2:34] <- tPCB$tPCB
 # Iowa, USA." Environmental Pollution 161: 222-228.
 # https://doi.org/10.1016/j.envpol.2011.10.028 
 
-s.2[2, 2:65] <- c(6.253491724, 16.80387245, 12.63058738, 17.70738503,
+s.tpcb[2, 2:65] <- c(6.253491724, 16.80387245, 12.63058738, 17.70738503,
                   5.059038158, 15.11833429, 15.30164564, 4.4212167,
                   8.133366499, 15.80452114, 10.77403669, 4.561438133,
                   2.966628839, 50.67778504, 10.31410547, 9.919715784,
@@ -362,7 +445,7 @@ s.2[2, 2:65] <- c(6.253491724, 16.80387245, 12.63058738, 17.70738503,
 # (PCDFs), Polychlorinated Biphenyls (PCB) and Mercury in
 # Rural Soils of the U.S. Washington, DC.
 
-s.2[3, 2:25] <- c(1.366, 0.475, 2.604, 15.7, 2.037, 0.358, 1.115,
+s.tpcb[3, 2:25] <- c(1.366, 0.475, 2.604, 15.7, 2.037, 0.358, 1.115,
                   2.464, 4.028, 3.023, 1.543, 1.019, 0.845, 0.303,
                   4.93, 4.954, 24.57, 0.713, 0.57, 0.509, 3.274,
                   1.3, 2.419, 1.224)
@@ -376,7 +459,7 @@ s.2[3, 2:25] <- c(1.366, 0.475, 2.604, 15.7, 2.037, 0.358, 1.115,
 # Environmental Science & Technology 37(4): 667-672.
 # https://pubs.acs.org/doi/10.1021/es025809l
 
-s.2[4, 2:22] <- c(0.026, 96.9, 5.9661, 3.3517, 0.6442, 8.7147,
+s.tpcb[4, 2:22] <- c(0.026, 96.9, 5.9661, 3.3517, 0.6442, 8.7147,
                   1.5107, 3.165, 3.165, 0.0472, 9.5003, 16.0376,
                   24.9879, 7.4148, 7.3494, 48.2592, 5.5822,
                   0.5264, 0.3557, 37.121, 6.5972)
@@ -390,7 +473,7 @@ s.2[4, 2:22] <- c(0.026, 96.9, 5.9661, 3.3517, 0.6442, 8.7147,
 # 51: 303-314.
 # https://doi.org/10.1016/j.apgeochem.2014.09.013
 
-s.2[5, 2:73] <- c(28.85, 26.58, 36.03, 9.35,	16.89,	43.79,
+s.tpcb[5, 2:73] <- c(28.85, 26.58, 36.03, 9.35,	16.89,	43.79,
                   82.53, 20.46,	55.69,	779.69,	92.26,	12.78,
                   15.51,	12.3,	28.76,	43.96,	42.14,	19.29,
                   103.19,	10.4,	21.66,	53.14,	47.13,	19.23,
@@ -411,7 +494,7 @@ s.2[5, 2:73] <- c(28.85, 26.58, 36.03, 9.35,	16.89,	43.79,
 # soil of China." Chemosphere 243.
 # https://doi.org/10.1016/j.chemosphere.2019.125392
 
-s.2[6, 2:25] <- c(537.64,	31.35, 113.26, 22.68, 10.16,
+s.tpcb[6, 2:25] <- c(537.64,	31.35, 113.26, 22.68, 10.16,
                   27.22, 32.38,	2.42,	38.77, 1.78, 2.74,
                   0.3, 1.3, 0.84, 281.41, 1.14, 1.9,
                   1.28,	2.06, 0.44, 14.72, 5.63, 0.44, 0.72)
@@ -425,7 +508,7 @@ s.2[6, 2:25] <- c(537.64,	31.35, 113.26, 22.68, 10.16,
 # https://pubs.acs.org/doi/10.1021/es9812709
 # Mean value only
 
-s.2[7,2] <- c(200)
+s.tpcb[7,2] <- c(200)
 
 # Row 8 Gadsden, USA, data
 # Ref:
@@ -436,7 +519,7 @@ s.2[7,2] <- c(200)
 # Monitoring Journal 13(1): 17-22.
 # Mean value only
 
-s.2[8,2] <- c(220)
+s.tpcb[8,2] <- c(220)
 
 # Row 9 Wenling, China, data
 # Ref:
@@ -449,7 +532,7 @@ s.2[8,2] <- c(220)
 # https://doi.org/10.1016/j.jhazmat.2009.08.134
 # Mean value only
 
-s.2[9,2] <- c(123467.75)
+s.tpcb[9,2] <- c(123467.75)
 
 # Row 10 Kalamazoo, USA, data
 # Ref:
@@ -463,20 +546,20 @@ s.2[9,2] <- c(123467.75)
 # https://pubs.acs.org/doi/10.1021/es048317c
 # Mean value only
 
-s.2[10,2] <- c(6530)
+s.tpcb[10,2] <- c(6530)
 
 # Modify and adjust format
 # Transform matrix to data.frame
-s.2 <- data.frame(s.2)
+s.tpcb <- data.frame(s.tpcb)
 
-# Organize s.2 in a long data.frame format
-s.2 <- melt(s.2, id.vars = "location")
+# Organize s.tpcb in a long data.frame format
+s.tpcb <- melt(s.tpcb, id.vars = "location")
 
 # transform value into numeric value
-s.2$value <- as.numeric(s.2$value)
+s.tpcb$value <- as.numeric(s.tpcb$value)
 
 # Plot Figure 3
-ggplot(s.2, aes(x = location, y = value)) +
+ggplot(s.tpcb, aes(x = location, y = value)) +
   geom_boxplot(width = 0.6, outlier.colour = "black",
                outlier.shape = 1) +
   scale_y_log10() +
@@ -507,8 +590,9 @@ ggplot(s.2, aes(x = location, y = value)) +
                size = 0.8, color = "blue")
 
 # Individual PCB boxplot (Figure 4) ---------------------------------------
+# need to change the column names!
 
-ggplot(stack(s.1), aes(x = ind, y = values)) +
+ggplot(stack(s.3), aes(x = ind, y = values)) +
   scale_y_log10(limits = c(0.005, 300),
                 breaks = c(0.01, 0.1, 1, 10, 100),
                 labels = c(0.01, 0.1, 1, 10, 100)) +
@@ -535,17 +619,17 @@ ggplot(stack(s.1), aes(x = ind, y = values)) +
 
 # TOC vs. PCB concentrations plots (Figure 5) -----------------------
 
-# Remove samples with no TOC measurements
-s.toc <- data.frame(s[!s$TOC== 0,])
-# Retrieve just TOC data
-toc <- s.toc$TOC*100
-
-#cor(x, y, method = "pearson")
+# Include TOC data to s.3
+s.toc <- cbind(toc$TOC...., s.3)
+# Remove samples (row) where toc was not measured (NA)
+s.toc <- na.omit(s.toc)
+# Change name in s.toc to toc
+colnames(s.toc)[1] <- "toc"
 
 # Perform linear regressions, individual PCB congeners and tPCB vs. TOC
 # PCB 8 vs. TOC
 a.pcb8 <- log10(s.toc$PCB8)
-fit1 <- lm(a.pcb8 ~ toc)
+fit1 <- lm(a.pcb8 ~ s.toc$toc)
 # Plot PCB 8 vs. TOC linear regression
 p8.toc <- ggplot(s.toc, aes(y = PCB8, x = toc)) +
   geom_point(shape = 21, colour = "black", fill = "white",
@@ -575,7 +659,7 @@ p8.toc <- ggplot(s.toc, aes(y = PCB8, x = toc)) +
 
 # PCB 11 vs. TOC
 a.pcb11 <- log10(s.toc$PCB11)
-fit11 <- lm(a.pcb11 ~ toc)
+fit11 <- lm(a.pcb11 ~ s.toc$toc)
 # Plot PCB 11 vs. TOC linear regression
 p11.toc <- ggplot(s.toc, aes(y = PCB11, x = toc)) +
   geom_point(shape = 21, colour = "black", fill = "white",
@@ -605,7 +689,7 @@ p11.toc <- ggplot(s.toc, aes(y = PCB11, x = toc)) +
 
 # PCB 52 vs. TOC
 a.pcb52 <- log10(s.toc$PCB52)
-fit52 <- lm(a.pcb52 ~ toc)
+fit52 <- lm(a.pcb52 ~ s.toc$toc)
 # Plot PCB 52 vs. TOC linear regression
 p52.toc <- ggplot(s.toc, aes(y = PCB52, x = toc)) +
   geom_point(shape = 21, colour = "black", fill = "white",
@@ -635,7 +719,7 @@ p52.toc <- ggplot(s.toc, aes(y = PCB52, x = toc)) +
 
 # PCB 136 vs. TOC
 a.pcb136 <- log10(s.toc$PCB136)
-fit136 <- lm(a.pcb136 ~ toc)
+fit136 <- lm(a.pcb136 ~ s.toc$toc)
 # Plot PCB 136 vs. TOC linear regression
 p136.toc <- ggplot(s.toc, aes(y = PCB136, x = toc)) +
   geom_point(shape = 21, colour = "black", fill = "white",
@@ -665,7 +749,7 @@ p136.toc <- ggplot(s.toc, aes(y = PCB136, x = toc)) +
 
 # PCB 209 vs. TOC
 a.pcb209 <- log10(s.toc$PCB209)
-fit209 <- lm(a.pcb209 ~ toc)
+fit209 <- lm(a.pcb209 ~ s.toc$toc)
 # Plot PCB 209 vs. TOC linear regression
 p209.toc <- ggplot(s.toc, aes(y = PCB209, x = toc)) +
   geom_point(shape = 21, colour = "black", fill = "white",
@@ -693,11 +777,11 @@ p209.toc <- ggplot(s.toc, aes(y = PCB209, x = toc)) +
                       mid = unit(1.5, "mm"),
                       long = unit(2, "mm"))
 
-# remove metadata
-s.toc.2 <- subset(s.toc, select = -c(sample.code:lat))
+# Remove metadata
+s.toc.2 <- subset(s.toc, select = -c(toc))
 # Perform linear regression for tPCB vs. TOC
 a <- log10(rowSums(s.toc.2))
-fittPCB <- lm(a ~ toc)
+fittPCB <- lm(a ~ s.toc$toc)
 # Plot tPCB vs. TOC
 ptPCB.toc <- ggplot(s.toc, aes(x = toc, y = rowSums(s.toc.2))) +
   geom_point(shape = 21, colour = "black", fill = "white",
@@ -730,11 +814,13 @@ ggarrange(p8.toc, p11.toc, p52.toc, p136.toc, p209.toc, ptPCB.toc, ncol=2)
 
 # Distance IHSC (The Fork) vs PCB concentration plots (Figure 6) ---------------------------
 
-d <- s$distance
+# Change name to distance in s
+colnames(s)[8] <- "distanceFork"
+d <- s$distanceFork # m
 # PCB 56 vs distance to IHSC (The Fork)
-a.pcb56 <- log10(s$PCB56)
+a.pcb56 <- log10(s.3$PCB56)
 fit56 <- lm(a.pcb56 ~ d)
-p56.dis <- ggplot(s, aes(x = d, y = PCB56)) +
+p56.dis <- ggplot(s.3, aes(x = d, y = PCB56)) +
   geom_point(shape = 21, colour = "black", fill = "white",
              size = 1.7, stroke = 0.8) +
   stat_smooth(method = "lm", col = "black", se = FALSE) +
@@ -761,9 +847,9 @@ p56.dis <- ggplot(s, aes(x = d, y = PCB56)) +
                       long = unit(2, "mm"))
   
 # PCB 66 vs distance to IHSC (The Fork)
-a.pcb66 <- log10(s$PCB66)
+a.pcb66 <- log10(s.3$PCB66)
 fit66 <- lm(a.pcb66 ~ d)
-p66.dis <- ggplot(s, aes(y = PCB66, x = d)) +
+p66.dis <- ggplot(s.3, aes(y = PCB66, x = d)) +
   geom_point(shape = 21, colour = "black", fill = "white",
              size = 1.7, stroke = 0.8) +
   stat_smooth(method = "lm", col = "black", se = FALSE) +
@@ -790,9 +876,9 @@ p66.dis <- ggplot(s, aes(y = PCB66, x = d)) +
                       long = unit(2, "mm"))
   
 # PCB 110 vs distance to IHSC (The Fork)
-a.pcb110 <- log10(s$PCB110)
+a.pcb110 <- log10(s.3$PCB110)
 fit110 <- lm(a.pcb110 ~ d)
-p110.dis <- ggplot(s, aes(y = PCB110, x = d)) +
+p110.dis <- ggplot(s.3, aes(y = PCB110, x = d)) +
   geom_point(shape = 21, colour = "black", fill = "white",
              size = 1.7, stroke = 0.8) +
   stat_smooth(method = "lm", col = "black", se = FALSE) +
@@ -819,9 +905,9 @@ p110.dis <- ggplot(s, aes(y = PCB110, x = d)) +
                       long = unit(2, "mm"))
 
 # PCB 187 vs distance to IHSC (The Fork)
-a.pcb187 <- log10(s$PCB187)
+a.pcb187 <- log10(s.3$PCB187)
 fit187 <- lm(a.pcb187 ~ d)
-p187.dis <- ggplot(s, aes(y = PCB187, x = d)) +
+p187.dis <- ggplot(s.3, aes(y = PCB187, x = d)) +
   geom_point(shape = 21, colour = "black", fill = "white",
              size = 1.7, stroke = 0.8) +
   stat_smooth(method = "lm", col = "black", se = FALSE) +
@@ -848,9 +934,9 @@ p187.dis <- ggplot(s, aes(y = PCB187, x = d)) +
                       long = unit(2, "mm"))
 
 # PCB 206 vs distance to IHSC (The Fork)
-a.pcb206 <- log10(s$PCB206)
+a.pcb206 <- log10(s.3$PCB206)
 fit206 <- lm(a.pcb206 ~ d)
-p206.dis <- ggplot(s, aes(y = PCB206, x = d)) +
+p206.dis <- ggplot(s.3, aes(y = PCB206, x = d)) +
   geom_point(shape = 21, colour = "black", fill = "white",
              size = 1.7, stroke = 0.8) +
   stat_smooth(method = "lm", col = "black", se = FALSE) +
@@ -877,9 +963,9 @@ p206.dis <- ggplot(s, aes(y = PCB206, x = d)) +
                       long = unit(2, "mm"))
 
 # PCB 209 vs distance to IHSC (The Fork)
-a.pcb209 <- log10(s$PCB209)
+a.pcb209 <- log10(s.3$PCB209)
 fit209 <- lm(a.pcb209 ~ d)
-p209.dis <- ggplot(s, aes(y = PCB209, x = d)) +
+p209.dis <- ggplot(s.3, aes(y = PCB209, x = d)) +
   geom_point(shape = 21, colour = "black", fill = "white",
              size = 1.7, stroke = 0.8) +
   stat_smooth(method = "lm", col = "black", se = FALSE) +
@@ -906,9 +992,9 @@ p209.dis <- ggplot(s, aes(y = PCB209, x = d)) +
                       long = unit(2, "mm"))
 
 # Total PCB vs distance to IHSC (The Fork)
-a <- log10(rowSums(s.1))
+a <- log10(rowSums(s.3))
 fittPCB <- lm(a ~ d)
-ptPCB.dis <- ggplot(s.1, aes(x = d, y = rowSums(s.1))) +
+ptPCB.dis <- ggplot(s.3, aes(x = d, y = rowSums(s.3))) +
   geom_point(shape = 21, colour = "black", fill = "white",
              size = 1.7, stroke = 0.8) +
   stat_smooth(method = "lm", col = "black", se = FALSE) +
@@ -941,12 +1027,9 @@ ggarrange(p56.dis, p110.dis, p187.dis, p206.dis, p209.dis,
 # PCB profile plot (Figure 7) ---------------------------------------------
 
 # Create average PCB congener profiles
-# When dataset ready in Pangaea, only 75% detection needs to be used here
-# e.g., s.3 <- s.2[, colMeans(s.2>0) >= 0.75]
-# check s.1
 
-tmp <- rowSums(s.1, na.rm = TRUE)
-prof <- sweep(s.1, 1, tmp, FUN = "/")
+tmp <- rowSums(s.3, na.rm = TRUE)
+prof <- sweep(s.3, 1, tmp, FUN = "/")
 prof.ave <- data.frame(colMeans(prof))
 colnames(prof.ave) <- c("mean")
 prof.sd <- data.frame(apply(prof,2,sd))
@@ -963,6 +1046,7 @@ prof.ave$congener <- factor(prof.ave$congener,
                             levels = unique(prof.ave$congener))
 
 # PCB Profile plot (Figure 7)
+# Need to check the labels
 ggplot(prof.ave, aes(x = congener, y = mean)) +
   geom_bar(position = position_dodge(), stat = "identity",
            fill = "black") +
@@ -973,55 +1057,55 @@ ggplot(prof.ave, aes(x = congener, y = mean)) +
   theme_bw() +
   theme(aspect.ratio = 3/12) +
   ylab(expression(bold("Mass fraction "*Sigma*"PCB"))) +
-  theme(axis.text.y = element_text(face = "bold", size = 9),
-        axis.title.y = element_text(face = "bold", size = 10)) +
+  theme(axis.text.y = element_text(face = "bold", size = 12),
+        axis.title.y = element_text(face = "bold", size = 13)) +
   theme(axis.title.x=element_blank(),
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank()) +
-  annotate("text", x = 11, y = 0.025, label = "PCB 11", size = 2.4,
+  annotate("text", x = 11, y = 0.019, label = "PCB 11", size = 4,
            fontface = 1, angle = 90) +
-  annotate("text", x = 15, y = 0.05, label = "PCBs 18+30", size = 2.4,
+  annotate("text", x = 15, y = 0.04, label = "PCBs 18+30", size = 4,
            fontface = 1, angle = 90) +
-  annotate("text", x = 17, y = 0.06, label = "PCBs 20+28", size = 2.4,
+  annotate("text", x = 17, y = 0.052, label = "PCBs 20+28", size = 4,
            fontface = 1, angle = 90) +
-  annotate("text", x = 23, y = 0.05, label = "PCB 31", size = 2.4,
+  annotate("text", x = 23, y = 0.044, label = "PCB 31", size = 4,
            fontface = 1, angle = 90) +
-  annotate("text", x = 37, y = 0.105, label = "PCB 52", size = 2.4,
+  annotate("text", x = 37, y = 0.096, label = "PCB 52", size = 4,
            fontface = 1, angle = 90) +
-  annotate("text", x = 43.5, y = 0.081, label = "PCBs 61+70+74+76", size = 2.4,
+  annotate("text", x = 42.9, y = 0.09, label = "PCBs 61+70+74+76", size = 4,
            fontface = 1, angle = 90) +
-  annotate("text", x = 62.4, y = 0.083, label = "PCBs 90+101+113", size = 2.4,
+  annotate("text", x = 61, y = 0.092, label = "PCBs 90+101+113", size = 4,
            fontface = 1, angle = 90) +
-  annotate("text", x = 66, y = 0.105, label = "PCB 95", size = 2.4,
+  annotate("text", x = 66, y = 0.098, label = "PCB 95", size = 4,
            fontface = 1, angle = 90) +
-  annotate("text", x = 74, y = 0.095, label = "PCB 110", size = 2.4,
+  annotate("text", x = 74, y = 0.088, label = "PCB 110", size = 4,
            fontface = 1, angle = 90) +
-  annotate("text", x = 77, y = 0.07, label = "PCB 118", size = 2.4,
+  annotate("text", x = 77, y = 0.063, label = "PCB 118", size = 4,
            fontface = 1, angle = 90) +
-  annotate("text", x = 81.6, y = 0.081, label = "PCBs 129+138+163", size = 2.4,
+  annotate("text", x = 80.9, y = 0.09, label = "PCBs 129+138+163", size = 4,
            fontface = 1, angle = 90) +
-  annotate("text", x = 92.8, y = 0.078, label = "PCBs 147+149", size = 2.4,
+  annotate("text", x = 93, y = 0.069, label = "PCBs 147+149", size = 4,
            fontface = 1, angle = 90) +
-  annotate("text", x = 95.2, y = 0.08, label = "PCBs 153+168", size = 2.4,
+  annotate("text", x = 95.2, y = 0.072, label = "PCBs 153+168", size = 4,
            fontface = 1, angle = 90) +
-  annotate("text", x = 108, y = 0.08, label = "PCBs 180+193", size = 2.4,
+  annotate("text", x = 108, y = 0.074, label = "PCBs 180+193", size = 4,
            fontface = 1, angle = 90) +
-  annotate("text", x = 111, y = 0.055, label = "PCB 187", size = 2.4,
+  annotate("text", x = 111, y = 0.049, label = "PCB 187", size = 4,
            fontface = 1, angle = 90) +
-  annotate("text", x = 119, y = 0.068, label = "PCBs 198+199", size = 2.4,
+  annotate("text", x = 119, y = 0.055, label = "PCBs 198+199", size = 4,
            fontface = 1, angle = 90) +
-  annotate("text", x = 125, y = 0.047, label = "PCB 206", size = 2.4,
+  annotate("text", x = 125, y = 0.037, label = "PCB 206", size = 4,
            fontface = 1, angle = 90) +
-  annotate("text", x = 127.4, y = 0.045, label = "PCB 209", size = 2.4,
+  annotate("text", x = 127.8, y = 0.035, label = "PCB 209", size = 4,
            fontface = 1, angle = 90)
 
 # PCA plot (Figures 8 and S4) -----------------------------------------------------
 
 # Prepare data from above section
 t.prof <- data.frame(t(prof))
-colnames(t.prof) <- meta.s$sample.code
+colnames(t.prof) <- s$Sample.label
 
-# Create matrix to Include other PCB profiles
+# Create matrix to include other PCB profiles
 s.prof <- matrix(NA, nrow = 128, ncol = 15)
 
 # Add profile and PCBs names
@@ -1652,38 +1736,39 @@ ggplot2::autoplot(PCA, data = t.prof.f, frame = TRUE,
                   frame.type = "t", size = 1.5, shape = 21) +
   stat_ellipse(color = "red") +
   theme_bw() +
-  xlim(-0.15, 0.63) +
+  xlim(-0.4, 0.61) +
+  ylim(-0.4, 0.61) +
   theme(aspect.ratio = 10/10) +
-  annotate("text", x = 0.6, y = -0.139, label = "Aroclor 1221*",
-           size = 2.4, fontface = 1) +
-  annotate("text", x = 0.6, y = -0.09, label = "Aroclor 1221",
-           size = 2.4, fontface = 1) +
+  annotate("text", x = 0.54, y = -0.135, label = "Aroclor 1221*",
+           size = 3.5, fontface = 1) +
+  annotate("text", x = 0.54, y = -0.09, label = "Aroclor 1221",
+           size = 3.5, fontface = 1) +
   annotate("text", x = 0.35, y = 0.024, label = "Aroclor 1232*",
-           size = 2.4, fontface = 1) +
-  annotate("text", x = 0.12, y = 0.3, label = "Aroclor 1016",
-           size = 2.4, fontface = 1) +
-  annotate("text", x = 0.105, y = 0.27, label = "Aroclor 1242",
-           size = 2.4, fontface = 1) +
-  annotate("text", x = 0.01, y = 0.26, label = "Aroclor 1248",
-           size = 2.4, fontface = 1) +
-  annotate("text", x = -0.1, y = -0.28, label = "Aroclor 1260*",
-           size = 2.4, fontface = 1) +
-  annotate("text", x = 0.079, y = -0.06, label = "Aroclor 1262*",
-           size = 2.4, fontface = 1) +
-  annotate("text", x = -0.13, y = -0.08, label = "Aroclor 1254*",
-           size = 2.4, fontface = 1) +
-  annotate("text", x = -0.124, y = -0.1, label = "Aroclor 1254",
-           size = 2.4, fontface = 1) +
-  annotate("text", x = 0.0, y = -0.134, label = "EPA soil",
-           size = 2.4, fontface = 1) +
-  annotate("text", x = -0.04, y = 0.3, label = "Emission IHSC",
-           size = 2.4, fontface = 1) +
-  annotate("text", x = -0.125, y = -0.25, label = "CR soil",
-           size = 2.4, fontface = 1) +
+           size = 3.5, fontface = 1) +
+  annotate("text", x = 0.14, y = 0.3, label = "Aroclor 1016",
+           size = 3.5, fontface = 1) +
+  annotate("text", x = 0.13, y = 0.27, label = "Aroclor 1242",
+           size = 3.5, fontface = 1) +
+  annotate("text", x = -0.08, y = 0.26, label = "Aroclor 1248",
+           size = 3.5, fontface = 1) +
+  annotate("text", x = -0.02, y = -0.29, label = "Aroclor 1260*",
+           size = 3.5, fontface = 1) +
+  annotate("text", x = 0.1, y = -0.06, label = "Aroclor 1262*",
+           size = 3.5, fontface = 1) +
+  annotate("text", x = -0.15, y = -0.08, label = "Aroclor 1254*",
+           size = 3.5, fontface = 1) +
+  annotate("text", x = -0.145, y = -0.1, label = "Aroclor 1254",
+           size = 3.5, fontface = 1) +
+  annotate("text", x = 0.02, y = -0.134, label = "EPA soil",
+           size = 3.5, fontface = 1) +
+  annotate("text", x = -0.07, y = 0.3, label = "Emission IHSC",
+           size = 3.5, fontface = 1) +
+  annotate("text", x = -0.135, y = -0.25, label = "CR soil",
+           size = 3.5, fontface = 1) +
   annotate("text", x = 0.1, y = 0.07, label = "EC air",
-           size = 2.4, fontface = 1) +
-  annotate("text", x = 0.08, y = 0.17, label = "Volatilization LM",
-           size = 2.4, fontface = 1)
+           size = 3.5, fontface = 1) +
+  annotate("text", x = 0.11, y = 0.17, label = "Volatilization LM",
+           size = 3.5, fontface = 1)
 
 # Perform PCA removing Aroclors 1221, 1232 and 1262 (Figure S4)
 # Remove Aroclors 1221, 1232
@@ -1702,25 +1787,26 @@ ggplot2::autoplot(PCA.2, data = t.prof.2,
   stat_ellipse(color = "red") +
   theme_bw() +
   theme(aspect.ratio = 10/10) +
-  annotate("text", x = 0.3, y = 0.32, label = "Aroclor 1016",
-           size = 2.4, fontface = 1) +
-  annotate("text", x = 0.25, y = 0.25, label = "Aroclor 1242",
-           size = 2.4, fontface = 1) +
-  annotate("text", x = 0.27, y = -0.03, label = "Aroclor 1248",
-           size = 2.4, fontface = 1) +
-  annotate("text", x = -0.22, y = 0.4, label = "Aroclor 1260*",
-           size = 2.4, fontface = 1) +
-  annotate("text", x = -0.064, y = -0.255, label = "Aroclor 1254*",
-           size = 2.4, fontface = 1) +
-  annotate("text", x = -0.08, y = -0.285, label = "Aroclor 1254",
-           size = 2.4, fontface = 1) +
-  annotate("text", x = -0.1, y = 0.17, label = "EPA soil",
-           size = 2.4, fontface = 1) +
-  annotate("text", x = 0.3, y = 0.15, label = "Emission IHSC",
-           size = 2.4, fontface = 1) +
+  annotate("text", x = 0.3, y = -0.32, label = "Aroclor 1016",
+           size = 3, fontface = 1) +
+  annotate("text", x = 0.24, y = -0.25, label = "Aroclor 1242",
+           size = 3, fontface = 1) +
+  annotate("text", x = 0.27, y = 0.03, label = "Aroclor 1248",
+           size = 3, fontface = 1) +
+  annotate("text", x = -0.22, y = -0.4, label = "Aroclor 1260*",
+           size = 3, fontface = 1) +
+  annotate("text", x = -0.057, y = 0.255, label = "Aroclor 1254*",
+           size = 3, fontface = 1) +
+  annotate("text", x = -0.08, y = 0.285, label = "Aroclor 1254",
+           size = 3, fontface = 1) +
+  annotate("text", x = -0.095, y = -0.17, label = "EPA soil",
+           size = 3, fontface = 1) +
+  annotate("text", x = 0.3, y = -0.15, label = "Emission IHSC",
+           size = 3, fontface = 1) +
   annotate("text", x = -0.25, y = 0.0, label = "CR soil",
-           size = 2.4, fontface = 1) +
-  annotate("text", x = 0.1, y = 0.105, label = "EC air",
-           size = 2.4, fontface = 1) +
-  annotate("text", x = 0.22, y = 0.055, label = "Volatilization LM",
-           size = 2.4, fontface = 1)
+           size = 3, fontface = 1) +
+  annotate("text", x = 0.1, y = -0.105, label = "EC air",
+           size = 3, fontface = 1) +
+  annotate("text", x = 0.23, y = -0.055, label = "Volatilization LM",
+           size = 3, fontface = 1)
+
