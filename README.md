@@ -12,7 +12,7 @@ This work was supported by the National Institutes of Environmental Health Scien
 
 Citation for the data:
 
-Martinez, Andres; Hua, Jason; Haque, Ezazul; Hornbuckle, Keri C.; Thorne, Peter (2022): Dataset: Concentrations of individual polychlorinated biphenyl congeners and total organic carbon in soils from East Chicago, Indiana, USA. Pangaea, https://doi.org/
+Martinez, Andres; Hua, Jason; Haque, Ezazul; Hornbuckle, Keri C.; Thorne, Peter (2022): Dataset: Concentrations of individual polychlorinated biphenyl congeners and total organic carbon in soils from East Chicago, Indiana, USA. Pangaea, https://doi.org/10.1594/PANGAEA.941894
 
 Publication citation:
 
