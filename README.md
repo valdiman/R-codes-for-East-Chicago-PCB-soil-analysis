@@ -16,7 +16,7 @@ Martinez, Andres; Hua, Jason; Haque, Ezazul; Hornbuckle, Keri C.; Thorne, Peter 
 
 Publication citation:
 
-Martinez, Andres; Hua, Jason; Haque, Ezazul; Hornbuckle, Keri C.; Thorne, Peter S. (2022): Occurrence and spatial distribution of individual polychlorinated biphenyl congeners in residential soils from East Chicago, southwest Lake Michigan.
+Martinez, Andres; Hua, Jason; Haque, Ezazul; Hornbuckle, Keri C.; Thorne, Peter S. (2022): Occurrence and spatial distribution of individual polychlorinated biphenyl congeners in residential soils from East Chicago, southwest Lake Michigan. https://doi.org/10.1016/j.scitotenv.2022.157705
 
 # Software installation
 
