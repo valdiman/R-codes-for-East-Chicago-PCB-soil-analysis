@@ -29,4 +29,4 @@ This section of the ReadMe file provides short instructions on how to download a
 
 # R files description
 
-Two R files are included in this repository. ECSoilStatTest.R performs all the statistical tests and analyses included in the scientific paper, whereas ECSoilFigures.R includes how to create all the figures and maps in the scientific paper. it is recommended to create a Project in Rstudio and paste both R files.
+Two R files (scripts) are included in this repository. ECSoilStatTest.R performs all the statistical tests and analyses included in the scientific paper, whereas ECSoilFigures.R includes how to create all the figures and maps in the scientific paper. it is recommended to create a Project in Rstudio and paste both R files in two scritps and save then as the original names.
